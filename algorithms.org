@@ -770,6 +770,47 @@
           }
       }
     #+END_SRC
+*** 两两交换链表中的节点
+    :PROPERTIES:
+    :LEETCODE_ID: 24
+    :DIFFICULTY: Medium
+    :END:
+    #+NAME: swap-pairs
+    #+BEGIN_SRC swift
+      class Solution {
+          func swapPairs_iterate(_ head: ListNode?) -> ListNode? {
+              if head == nil || head?.next == nil { return head }
+
+              var first = head
+              var second = head?.next
+
+              first?.next = swapPairs(second?.next)
+              second?.next = first
+
+              return second
+          }
+
+          func swapPairs(_ head: ListNode?) -> ListNode? {
+              let dummy = ListNode(-1)
+              dummy.next = head
+
+              var pre:ListNode? = dummy
+              while head != nil && head?.next != nil {
+                  var first = head
+                  var second = head?.next
+
+                  pre?.next = second
+                  first?.next = second?.next
+                  second?.next = first
+
+                  pre = first
+                  head = first?.next
+              }
+              return dummy.next
+          }
+      }
+    #+END_SRC
+
 * 栈
 ** 什么是栈
    栈是一种“操作受限”的线性表，栈内的数据只能“后进先出”。
