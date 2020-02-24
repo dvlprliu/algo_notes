@@ -810,6 +810,41 @@
           }
       }
     #+END_SRC
+*** K个一组反转链表
+    :PROPERTIES:
+    :DIFFICULTY: hard
+    :LEETCODE_ID: 25
+    :END:
+    #+NAME: reverse-nodes-in-k-group
+    #+BEGIN_SRC swift
+      class Solution {
+          func reverseKGroup(_ head: ListNode?, _ k: Int) -> ListNode? {
+              var length = 0
+              var cur = head
+              while cur != nil {
+                  cur = cur?.next
+                  length += 1
+              }
+              if length < k {
+                  return head
+              }
+              var tmpHead = head
+              cur = head
+              var pre: ListNode? = nil
+              var n = 0
+              var tmp: ListNode?
+              while n < k {
+                  tmp = cur?.next
+                  cur?.next = pre
+                  pre = cur
+                  cur = tmp
+                  n += 1
+              }
+              tmpHead?.next = reverseKGroup(tmp, k)
+              return pre
+          }
+      }
+    #+END_SRC
 
 * 栈
 ** 什么是栈
