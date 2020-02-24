@@ -1,0 +1,1342 @@
+#+title: 数据结构与算法之美笔记
+* 时间复杂度分析
+** 什么是复杂度分析
+   1. 数据结构和算法结局的是“如何让计算机更快时间，更省空间的解决问题”。因此需要
+      从执行时间和占用空间两个概念来描述性能问题，二者统称为“复杂度”。
+   2. 分别用时间和空间复杂度两个概念来描述性能问题，二者统称为复杂度。
+   3. 复杂度描述的是算法执行时间（或者用空间）与数据规模之间的增长关系。
+** 为什么要进行复杂度分析
+   1. 和性能测试相比，复杂度分析具有：不依赖执行环境、成本低、效率高、易操作、指
+      导性强的特点
+   2. 掌握复杂度分析，将能编写出性能更优的代码，有利于降低系统开发和维护成本。
+** 如何进行复杂度分析
+*** 大O表示法
+**** 来源
+     算法执行时间与每行代码执行的次数成正比，用 _T(n) = O(f(n))_ 表示，其中T(n)
+     表示算法执行总时间，f(n)表示每行代码执行的总次数，n表示数据规模。
+**** 特点
+     以时间复杂度为例，由于时间复杂度描述的是算法执行时间与数据规模的增长变化趋
+     势，所以常量阶、低阶以及系数实际上对这种增长趋势不缠身决定性影响，所以在做
+     时间复杂度分析时忽略这些项。
+**** 复杂度分析法则
+     * 单段代码看高频：循环
+     * 多段代码取最大：一段代码中有单循环和嵌套循环，取嵌套循环的复杂度
+     * 嵌套代码取乘积：比如递归、嵌套循环
+     * 过个规模使用加法或乘法
+**** 常用的复杂度级别
+     多项式阶：随着数据规模的增长，算法执行时间和占用空间按照多项式的比例增长
+     * O(1) 常数
+     * O(logn) 对数
+     * O(n) 线性
+     * O(nlogn) 线性对数
+     * O(n^2) 平方
+     * O(n^3) 立方
+
+     非多项式阶：随着数据规模的赠场，算法的执行时间和占用空间暴增，这类算法性能
+     极差
+     * O(2^n) 指数
+     * O(n!) 阶乘
+*** 如何掌握时间复杂度分析方法
+    多练，熟能生巧
+** 复杂度分析的四个概念
+   1. 最坏情况时间复杂度：代码在最坏情况下执行的时间复杂度
+   2. 最好情况时间复杂度：代码在最好情况下执行的时间复杂度
+   3. 平均时间复杂度：代码在所有情况下执行次数的加权平均值表示
+   4. 均摊时间复杂度：对一个数据结构进行一组连续操作中，大部分情况下时间复杂度都
+      很低，只有个别情况下时间复杂度比较高，而且这些操作之间存在前后连贯的时序关
+      系，这个时间，我们就将这一组操作放到一起分析，看是否能将较高的时间复杂度那
+      次操作的耗时，平摊到其他时间复杂度操作较低的操作上。而且，在能够应用均摊时
+      间复杂度分析的场合，一般均摊时间复杂度就等于较好情况的时间复杂度。 _均摊时
+      间复杂度是一种特殊的平均时间复杂度_
+*** 为什么要引入这四个概念
+    1. 同一段代码在不同情况下时间复杂度会出现量级差异，为了更全面，更准确的描述
+       代码的复杂度，引入这四个概念。
+    2. 时间复杂度在不同情况下出现量级差异时才需要区别这四种代码复杂度。大多是情
+       况下是不需要区别分析他们的。
+*** 如何分析平均、均摊时间复杂度
+    1. 平均时间复杂度
+       代码在不同情况下复杂度出现量级差异，则用代码所有可能的情况下执行次数加权
+       平均值表示。
+    2. 均摊时间复杂度
+       两个条件满足时使用： 1）绝大多是情况下是低级别复杂度，只有极少数情况是高
+       级别复杂度；2）低级别和高级别复杂度出现具有时序性，均摊结果一般等于低级别
+       复杂度。
+* 数组
+  数组是一种 *线性表* 数据结构。他用一组连续的内存空间，存储一组具有相同类型的数
+  据。
+** 支持随机访问
+   因为数组用 *连续的存储空间和相同的类型* 存储数据，所以数组支持随机访问，通过
+   下标访问数据的时间复杂度为 ~O(1)~ 。地址计算公式为
+   #+BEGIN_SRC c
+     a[i]_address = base_address + i + data_type_size
+   #+END_SRC
+
+** “插入”和“删除”操作
+   为了保证内存数据的连续性，导致“插入”和“删除”操作比较低效，平均时间复杂度为
+   ~O(n)~ 。
+
+** 例题
+   [[https://leetcode-cn.com/tag/array/][数组练习题]]
+
+   [[https://leetcode-cn.com/problems/two-sum/][two-sum]]
+   #+BEGIN_SRC swift
+     class Solution {
+         func twoSum(_ nums: [Int], _ target: Int) -> [Int] {
+             var hash = [Int: Int]()
+             for (idx, num) in nums.enumerated() {
+                 let complement = target - num
+                 if let find = hash[complement], find != idx {
+                     return [idx, find]
+                 }
+                 hash[num] = idx
+             }
+             return []
+         }
+     }
+
+     let result = Solution().twoSum([2,7,11,15], 9)
+     let ans = [1, 0]
+     print("result: \(result), ans: \(ans) ", result == ans ? "passed!" : "failed")
+   #+END_SRC
+
+   #+RESULTS:
+   : result: [1, 0], ans: [1, 0]  passed!
+
+   [[https://leetcode-cn.com/problems/3sum/][three-sum]]
+   #+BEGIN_SRC swift
+     class Solution {
+         func threeSum_bruteForce(_ nums: [Int]) -> [[Int]] {
+             var ans = [[Int]]()
+             let n = nums.count
+             for i in (0..<n - 2)  {
+                 for j in (i + 1)..<n - 1 {
+                     for k in (j + 1)..<n {
+                         if (nums[i] + nums[j] + nums[k] == 0) {
+                             ans.append([nums[i], nums[j], nums[k]])
+                         }
+                     }
+                 }
+             }
+             return ans
+         }
+
+         func threeSum(_ nums: [Int]) -> [[Int]] {
+             if nums.count < 3 { return [] }
+             var result = [[Int]]()
+             let nums = nums.sorted()
+             let count = nums.count
+             for i in 0..<count {
+                 if nums[i] > 0 { return result }
+                 if i > 0 && nums[i] == nums[i - 1] { continue }
+                 var l = i + 1
+                 var r = count - 1
+                 while l < r {
+                     if (nums[i] + nums[l] + nums[r] == 0) {
+                         result.append([nums[i], nums[l], nums[r]])
+                         while l < r && nums[l] == nums[l + 1] {
+                             l += 1
+                         }
+                         while l < r && nums[r] == nums[r - 1] {
+                             r -= 1
+                         }
+                         l += 1
+                         r -= 1
+                     } else if (nums[i] + nums[l] + nums[r] > 0) {
+                         r -= 1
+                     } else {
+                         l += 1
+                     }
+                 }
+             }
+             return result
+         }
+     }
+
+     let result = Solution().threeSum([-1, 0, 1, 2, -1, 4])
+     let ans = [[-1, -1, 2], [-1, 0, 1]]
+     print("result: \(result), ans: \(ans)", result == ans ? "passed!" : "failued")
+   #+END_SRC
+
+   #+RESULTS:
+   : result: [[-1, -1, 2], [-1, 0, 1]], ans: [[-1, -1, 2], [-1, 0, 1]] passed!
+
+
+   [[https://leetcode-cn.com/problems/remove-duplicates-from-sorted-array/][删除数组中的重复项]]
+   #+BEGIN_SRC swift
+     class Solution {
+         func removeDuplicates(_ nums: inout [Int]) -> Int {
+             if nums.isEmpty { return 0 }
+             var i = 0
+             for j in 1..<nums.count {
+                 if nums[i] != nums[j] {
+                     i += 1
+                     nums[i] = nums[j]
+                 }
+             }
+             return i + 1
+         }
+     }
+
+     var elements = [0,0,1,1,1,2,2,3,3,4]
+     let result = Solution().removeDuplicates(&elements)
+     let ans = 5
+     print("result: \(result), ans: \(ans)", result == ans ? "passed!": "failed")
+   #+END_SRC
+
+   #+RESULTS:
+   : result: 5, ans: 5 passed!
+
+* 链表
+** 什么是链表
+   1. 链表也是一种 *线性结构* 。
+   2. 链表的内存结构不是连续的，而是由分散的小块串起来的。
+   3. 链表中的每一个内存块被称为 *节点* ，节点除存储数据外，还记录链表的下一个节
+      点的位置，即 *后继* 指针。
+** 链表的特点
+   1. 插入、删除复杂度O(1)级别，效率高。
+   2. 不支持随机访问，查找某个元素O(n)级别
+   3. 和数组相比内存消耗大。
+** 常用的链表：单链表、双向链表和循环链表
+*** 单链表
+    1. 每个节点只有一个后继指针
+    2. 有两个特殊的节点，头节点和尾节点。首节点位置表示整个链表，尾节点的后继指
+       针指向null
+    3. 插入和删除节点的时间复杂度为O(1)，查找的时间复杂度为O(n)
+*** 循环链表
+    1. 特殊的单链表，区别在于尾节点的后继指针指向头节点
+    2. 适用于存储有循环特点的数据，比如约瑟夫问题
+*** 双向链表
+    1. 与单链表相比，每个节点除了后继指针外，还有一个指向前一个节点的 *前驱指针*
+    2. 头节点的前驱指针和尾指针都指向null
+    3. 性能方面，1、需要消耗更多的存储空间；2、插入和删除指定的节点的时间复杂度
+       为O(1)
+*** 双向循环链表
+    1. 头节点的前驱指针指向尾节点，尾节点的后继指针指向头节点。
+** 链表和数组
+*** 插入删除的复杂度比较
+    |                 | Array | List |
+    |-----------------+-------+------|
+    | insert & delete | O(n)  | O(n) |
+    | random access   | O(1)  | O(n) |
+
+
+*** 缺点
+**** 数组
+     1. 如果申请的空间很大，但是内存不足时会导致申请失败
+     2. 大小固定，如果空间不足则需要扩容，扩容则需要进行数据复制
+**** 链表
+     1. 内存空间消耗大，需要额外的空间存放指针信息
+     2. 对链表进行频繁的插入和删除会导致内存频繁的申请和释放，容易造成内存碎片
+*** 选择
+    数组简单已用，在实现上使用连续的内存空间，可以借助CPU缓存机制预读取数组中的
+    数据，所以访问更高效；而链表在内存中并不是连续存储，所以对CPU缓存不友好，没
+    有办法预读。如果对内存的使用要求苛刻，就使用数组。
+** 应用——缓存策略
+*** 什么是缓存
+    缓存是一种提交数据读取性能的技术，在硬件设计、软件开发中都有着非常广泛的应用，
+    比如常见的CPU缓存、数据库缓存、浏览器缓存。
+*** 为什么需要使用缓存淘汰
+    缓存的大小是有限的，当缓存被用满时，哪些数据应该被清理出去，哪些数据应该被保
+    留，就需要用到缓存淘汰策略。
+*** 什么时候缓存淘汰策略
+    指的是当缓存被占满时，清理缓存的优先顺序。
+*** 有哪些缓存淘汰策略
+    - *FIFO* (First In First Out) 先进先出
+    - *LFU* (Least Frenquently Used) 最少使用
+    - *LRU* (Least Recently Used) 最近最少使用
+** 技巧
+*** 理解指针或引用的含义
+    将某个变量赋值给指针，实际上就是将这个变量的地址赋值给指针，或者反过来说，指
+    针中存储了这个变量的内存地址，指向了这个变量，通过指针就能找到这个变量。
+*** 警惕指针丢失和内存泄漏
+    1. 插入节点是要注意操作顺序
+    2. 删除节点时要记得释放内存
+*** 利用哨兵简化实现难度
+    针对链表的插入、删除操作，需要对插入第一个结点和删除最后一个结点的情况进行特
+    殊处理。引入哨兵节点，不管任何时候，头节点的指针一定会指向这个个哨兵节点。有
+    哨兵节点的链表叫做 *带头链表* ，没有哨兵节点的链表叫做 *不带头链表* 。
+*** 重点留意边界条件
+    * 如果链表为空，代码能否正常工作
+    * 如果链表只包含一个节点，代码能否正常工作
+    * 如果链表只包含两个节点，代码能否正常工作
+    * 代码逻辑在处理头尾节点的时候，是否能够正常工作
+    * 其他针对不通过场景的特定边界条件
+*** 举例画图辅助思考
+*** 多写多练
+    典型题
+    * 单链表反转
+    * 链表中环的检测
+    * 两个有序链表合并
+    * 删除链表的倒数第n个节点
+    * 求链表中的中间节点
+** 例题
+*** 单链表节点的定义
+    #+NAME: list-node
+    #+BEGIN_SRC swift
+      public class ListNode {
+          public var val: Int
+          public var next: ListNode?
+          public init(_ val: Int) {
+              self.val = val
+              self.next = nil
+          }
+      }
+    #+END_SRC
+
+*** 单链表反转
+    #+NAME: reverse-linked-list-iterate
+    #+BEGIN_SRC swift :noweb yes
+      <<list-node>>
+      class Solution {
+          func reverseList(_ head: ListNode?) -> ListNode? {
+              if head == nil { return nil }
+              var pre: ListNode? = nil
+              var cur = head
+              var next: ListNode?
+              while cur != nil {
+                  next = cur?.next
+                  cur?.next = pre
+                  pre = cur
+                  cur = next
+              }
+              return pre
+          }
+      }
+      print(Solution().reverseList(nil) as Any)
+    #+END_SRC
+
+    #+RESULTS: reverse-linked-list-iterate
+    : nil
+
+    #+NAME: reverse-linked-list-recursive
+    #+BEGIN_SRC swift :noweb yes
+      // *对于递归算法，最重要的是明确递归的定义，然后利用明确的定义来实现算法逻辑*
+      <<list-node>>
+      class Solution {
+          /// 输入一个节点 head, 将「以head为起点」的链表反转，并返回反转之后的头节点
+          func reverseList(_ head: ListNode?) -> ListNode? {
+              if head == nil || head?.next == nil {
+                  return head
+              }
+
+              let newHead = reverseList(head?.next)
+              head?.next?.next = head
+              head?.next = nil
+
+              return newHead
+          }
+      }
+    #+END_SRC
+
+    #+RESULTS: reverse-linked-list-recursive
+
+*** 单链表反转II
+    [[https://leetcode-cn.com/problems/reverse-linked-list-ii/solution/bu-bu-chai-jie-ru-he-di-gui-di-fan-zhuan-lian-biao/][题解]]
+    #+NAME: reverse-between-recursive
+    #+BEGIN_SRC swift :noweb yes
+      <<list-node>>
+      class Solution {
+          func reverseBetween(_ head: ListNode?, _ m: Int, _ n: Int) -> ListNode? {
+              if m == 1 {
+                  return revertNTimes(head, n)
+              }
+              head?.next = reverseBetween(head?.next, m - 1, n - 1)
+              return head
+          }
+          var successor: ListNode? = nil
+          /// 反转链表的前N个节点
+          func revertNTimes(_ head: ListNode?, _ times: Int) -> ListNode? {
+              if times == 1 {
+                  successor = head?.next
+                  return head
+              }
+
+              let last = revertNTimes(head?.next, times - 1)
+              head?.next?.next = head
+              head?.next = successor
+              return last
+          }
+      }
+    #+END_SRC
+
+    [[https://leetcode-cn.com/problems/reverse-linked-list-ii/solution/using-c-by-crunch-2/][题解]]
+    #+NAME: reverese-between-iterate
+    #+BEGIN_SRC swift :noweb yes
+      <<list-node>>
+      class Solution {
+          func reverseBetween(_ head: ListNode?, _ m: Int, _ n: Int) -> ListNode? {
+              let dummy = ListNode(-1)
+              var pre: ListNode? = dummy
+              for _ in 0..<m - 1 {
+                  pre = pre?.next
+              }
+              let cur = pre?.next
+              for _ in m..<n {
+                  let node = cur?.next
+                  cur?.next = node?.next
+                  node?.next = pre?.next
+                  pre?.next = node
+              }
+              return dummy.next
+          }
+      }
+    #+END_SRC
+
+    #+RESULTS: reverese-between-iterate
+
+*** 两个有序链表合并
+    #+NAME: merge-two-sorted-lists
+    #+BEGIN_SRC swift :noweb yes
+      <<list-node>>
+      class Solution {
+          func mergeTwoLists(_ l1: ListNode?, _ l2: ListNode?) -> ListNode? {
+              let dummy: ListNode? = ListNode(-1)
+              var cur = dummy
+              var l1 = l1
+              var l2 = l2
+              while l1 != nil && l2 != nil {
+                  if l1!.val <= l2!.val {
+                      cur?.next = l1
+                      cur = cur?.next
+                      l1 = l1?.next
+                  } else {
+                      cur?.next = l2
+                      cur = cur?.next
+                      l2 = l2?.next
+                  }
+              }
+
+              if l1 == nil {
+                  cur?.next = l2
+              } else {
+                  cur?.next = l1
+              }
+
+              return dummy?.next
+          }
+      }
+
+      print(Solution().mergeTwoLists(nil, nil) as Any)
+    #+END_SRC
+
+    #+RESULTS: merge-two-sorted-lists
+    : nil
+*** 删除链表中的节点
+    #+NAME: delete-node-iterate
+    #+BEGIN_SRC swift
+      <<list-node>>
+      class Solution {
+          func deleteNode(_ head: ListNode? _ val: Int) -> ListNode? {
+              let dummy = ListNode(-1)
+              dummy.next = head
+              var cur = head
+              var last: ListNode?
+              while let curVal = cur?.val, curVal != val {
+                  last = cur
+                  cur = cur?.next
+              }
+              last?.next = cur?.next
+              cur?.next = nil
+              return dummy.next
+          }
+      }
+    #+END_SRC
+
+    #+NAME: delete-node-recursive
+    #+BEGIN_SRC swift
+      class Solution {
+          func deleteNode(_ head: ListNode?, _ val: Int) -> ListNode? {
+              if head?.val == val {
+                  return head?.next
+              }
+              head?.next = deleteNode(head?.next, val)
+              return head
+          }
+      }
+    #+END_SRC
+*** 删除链表中的倒数第N个节点
+
+    +------+    +-------+    +-------+    +-------+    +-------+    +-------+
+    | dummy+--->|       +--->|       +--->|       +--->|       +--->|       +--->NULL
+    +------+    +-------+    +-------+    +-------+    +-------+    +-------+
+        ^                                     ^
+        |                                     |
+        |                                     |
+       back                                 front
+
+    +------+    +-------+    +-------+    +-------+    +-------+    +-------+
+    | dummy+--->|       +--->|       +--->|       +--->|       +--->|       +--->NULL
+    +------+    +-------+    +-------+    +-------+    +-------+    +-------+
+                                              ^             ^                     ^
+                                              |             |                     |
+                                             back           del                 front
+
+    #+NAME: remove-nth-from-end
+    #+BEGIN_SRC swift
+      <<list-node>>
+      class Solution {
+          func removeNthFromEnd(_ head: ListNode?, _ n: Int) -> ListNode? {
+              if head?.next == nil && n != 0 { return nil }
+              let dummy = ListNode(-1)
+              dummy.next = head
+              var front: ListNode? = dummy
+              var back: ListNode? = dummy
+              for _ in 0..<n+1 {
+                  front = front?.next
+              }
+              while front != nil {
+                  front = front?.next
+                  back = back?.next
+              }
+              let del = back?.next
+              back?.next = del?.next
+              del?.next = nil
+              return dummy.next
+          }
+      }
+    #+END_SRC
+*** 旋转链表
+    [[https://leetcode-cn.com/problems/rotate-list/][leetcode]] 
+    #+NAME: rotate-list
+    #+BEGIN_SRC swift
+      class Solution {
+          func rotateRight(_ head: ListNode?, _ k: Int) -> ListNode? {
+              // 边界条件，head为空 k == 0 返回head
+              if head == nil || k == 0 { return head }
+              let dummy = ListNode(-1)
+              dummy.next = head
+              var length = head?.length() ?? 0
+              var k = k % length
+              // 求出的k==0也直接返回head
+              if k == 0 {
+                  return head
+              }
+              // 使用双指针找到倒数第k个节点
+              var back: ListNode? = dummy
+              var front: ListNode? = dummy
+              for _ in 0..<k {
+                  front = front?.next
+              }
+              while front?.next != nil {
+                  front = front?.next
+                  back = back?.next
+              }
+              var rotateHead = back?.next
+              back?.next = nil
+              front?.next = head
+              return rotateHead
+          }
+      }
+
+      extension ListNode {
+          /// 计算链表长度
+          func length() -> Int {
+              var length = 0 
+              var cur: ListNode? = self
+              while let node = cur {
+                  length += 1
+                  cur = node.next
+              }
+              return length
+          }
+      }
+    #+END_SRC
+*** 删除排序链表中重复的元素
+    #+NAME: delete-duplicates
+    #+BEGIN_SRC swift 
+      class Solution {
+          // RESULT: AC 68ms 5.98%
+          func deleteDuplicates_doublePointer(_ head: ListNode?) -> ListNode? {
+              if head == nil || head?.next == nil { return head }
+              var dummy: ListNode = ListNode(-1)
+              dummy.next = head
+              var pre: ListNode? = dummy
+              var cur = head
+              while cur != nil {
+                  if cur?.val == cur?.next?.val {
+                      pre?.next = cur?.next
+                      cur = cur?.next
+                  } else {
+                      pre = cur
+                      cur = cur?.next
+                  }
+              }
+              return dummy.next
+          }
+
+          // Result: AC 36ms 79.49%
+          func deleteDuplicates(_ head: ListNode?) -> ListNode? {
+              if head == nil { return nil }
+              var node = head
+              while node?.next != nil {
+                  if node?.val == node?.next?.val {
+                      node?.next = node?.next?.next
+                  } else {
+                      node = node?.next
+                  }
+              }
+              return head
+          }
+      }
+    #+END_SRC
+*** 删除排序链表中重复的元素II
+    [[https://leetcode-cn.com/problems/remove-duplicates-from-sorted-list-ii/][力扣]]
+    关键条件：
+    1. 排序链表
+    2. 只保留没有重复出现的数字
+     
+    思路：
+    1. 找到重复出现的数字的头和尾
+   
+    边界条件：
+    1. 链表头包含重复数字
+    2. 链表尾包含重复数字
+    3. 整个链表都是重复数字
+    4. 链表为空 
+
+    #+NAME: delete-duplicates
+    #+BEGIN_SRC swift 
+      class Solution {
+          func deleteDuplicates(_ head: ListNode?) -> ListNode? {
+              if head == nil { return nil }
+              var dummy: ListNode? = ListNode(-1)
+              dummy?.next = head
+              var pre = dummy
+              var cur = head
+              while cur != nil {
+                  if cur?.val != cur?.next?.val {
+                      pre = cur
+                      cur = cur?.next
+                      continue
+                  }
+                  while cur?.val == cur?.next?.val {
+                      cur = cur?.next
+                  }
+                  pre?.next = cur?.next
+                  cur = cur?.next
+              }
+              return dummy?.next
+          }
+      }
+    #+END_SRC
+*** 分割链表
+    [[https://leetcode-cn.com/problems/partition-list/][力扣]]  
+    思路
+    1. 在链表中找到第一个大于等于x的节点p
+    2. 在p节点后方找到小于x的节点q，删除q
+    3. 将q插入到p之前
+
+    #+NAME: partition
+    #+BEGIN_SRC swift
+      class Solution {
+          func partition(_ head: ListNode?, _ x: Int) -> ListNode? {
+              if head == nil || head?.next == nil { return head }
+              let dummy = ListNode(-1)
+              dummy.next = head
+              var p = head
+              var preInsert: ListNode? = dummy
+              while let node = p, node.val < x {
+                  preInsert = p
+                  p = p?.next
+              }
+
+              var cur = preInsert
+              while cur?.next != nil {
+                  if cur!.next!.val < x {
+                      // 被删除的节点
+                      let deleted = cur?.next
+                      // 删除小于x的节点
+                      cur?.next = cur?.next?.next
+                      // 将删除节点插入
+                      deleted?.next = preInsert?.next
+                      preInsert?.next = deleted
+                      // 保证两个分区中每个节点的初始相对位置
+                      preInsert = deleted
+                  } else {
+                      cur = cur?.next
+                  }
+              }
+
+              return dummy.next
+          }
+      }
+    #+END_SRC
+
+    备注：
+    第一次提交未AC，原因是忽略了“保持相对位置”的条件，原因是preInsert节点没有正
+    确维护，导致插入节点时与原顺序相反。
+*** 两数相加
+    #+NAME: add-two-numbers-ii
+    #+BEGIN_SRC swift
+      class Solution {
+          // 反转链表解法
+          // 先对两个链表进行反转，将该问题转化为“两数相加”问题，求得结果再反转，就是该题的解
+          func addTwoNumbers_reverse(_ l1: ListNode?, _ l2: ListNode?) -> ListNode? {
+              var l1 = reverseList(l1)
+              var l2 = reverseList(l2)
+              let dummy = ListNode(-1)
+              dummy.next = addTwoNumbersI_original(l1, l2) //or addTwoNumbers_optimazed 
+              return reverseList(dummy.next)
+          }
+
+          // 两数相加问题的解
+          // 两数相加问题的难点在于处理进位，这个方法对进位的处理放在了每次循环中，如果需要进位，则将修改原链表
+          // 如果原链表下个节点为空，添加一个新的节点，如果存在后继，则将后继的值加上进位。
+          func addTwoNumbersI_original(_ l1: ListNode?, _ l2: ListNode?) -> ListNode? {
+              let dummy = ListNode(-1)
+              var result: ListNode? = dummy
+              while l1 != nil || l2 != nil {
+                  let sum = (l1?.val ?? 0) + (l2?.val ?? 0)
+                  let val = sum % 10
+                  let newNode = ListNode(val)
+                  result?.next = newNode
+                  // 1)
+                  if sum >= 10 {
+                      if l1?.next == nil {
+                          l1?.next = ListNode(1)
+                      } else {
+                          // 进位的值改为 sum / 10 更准确
+                          // l1?.next?.val += 1
+                          l1?.next?.val += sum / 10
+                      }
+                  }
+                  // 2)
+                  l1 = l1?.next
+                  l2 = l2?.next
+                  result = result?.next
+              }
+              return dummy.next
+          }
+
+          // 两数相加问题的解
+          // 不同与上边一种解法中进位的处理，该实现将进位的处理放到了下一次循环中，在while循环条件判断中
+          // 添加了是否有进位的判断，如果有进位，就要执行循环。
+          // 这种实现方式代码更简洁。
+          func addTwoNumbersI_optimazed(_ l1: ListNode?, _ l2: ListNode?) -> ListNode? {
+              let dummy = ListNode(-1)
+              var result: ListNode? = dummy
+              var l1 = l1, l2 = l2
+              var carry = 0
+              while l1 != nil || l2 != nil || carry > 0 {
+                  var sum = (l1?.val ?? 0) + (l2?.val ?? 0) + carry
+                  result?.next = ListNode(sum % 10)
+                  carry = sum / 10
+                  l1 = l1?.next
+                  l2 = l2?.next
+                  result = result?.next
+              }
+              return dummy.next
+          }
+
+          func reverseList(_ head: ListNode?) -> ListNode? {
+              if head == nil || head?.next == nil { return head }
+
+              var newHead = reverseList(head?.next)
+              head?.next?.next = head
+              head?.next = nil
+              return newHead
+          }
+
+          // 使用栈辅助计算
+          func addTwoNumbers_stack(_ l1: ListNode?, _ l2: ListNode?) -> ListNode? {
+              var s1: [Int] = []
+              var s2: [Int] = []
+              var l1 = l1, l2 = l2
+              while let node = l1 {
+                  s1.append(node.val)
+                  l1 = l1?.next
+              }
+              while let node = l2 {
+                  s2.append(node.val)
+                  l2 = l2?.next
+              }
+
+              var carry = 0
+              let dummy = ListNode(-1)
+              var result: ListNode? = dummy
+              while !s1.isEmpty || !s2.isEmpty || carry > 0 {
+                  let sum = (s1.popLast() ?? 0) + (s2.popLast() ?? 0) + carry
+                  carry = sum / 10
+                  let newNode = ListNode(sum % 10)
+                  newNode.next = result?.next
+                  result?.next = newNode
+              }
+
+              return dummy.next
+          }
+
+          var addTwoNumbers: (ListNode?, ListNode?) -> ListNode? {
+              return addTwoNumbers_stack
+          }
+      }
+    #+END_SRC
+* 栈
+** 什么是栈
+   栈是一种“操作受限”的线性表，栈内的数据只能“后进先出”。
+** 为什么要使用栈
+   当某个数据集合只涉及在一端插入和删除数据，且满足“后进先出”的特性时，就可以用
+   栈数据结构，这样可以避免使用“数组”等自由度较高的数据结构可能导致的错误。
+** 栈ADT
+   #+NAME: stack-adt
+   #+BEGIN_SRC swift
+     protocol Stack {
+         associatedtype Item
+         /// 栈是否为空
+         var isEmpty: Bool { get }
+         /// 栈内元素的个数
+         var count: Int { get }
+         /// 压栈
+         func push(_ item: Item)
+         /// 弹栈
+         func pop() -> Item?
+         /// 查看栈顶元素
+         func peek() -> Item?
+     }
+   #+END_SRC
+
+** 栈的实现
+   栈既可以使用数组实现，也可以使用链表实现，使用数组实现的栈叫做 *顺序栈* ， 使
+   用链表实现的栈叫做 *链式栈* 。
+*** 顺序栈
+    #+NAME: array-list
+    #+BEGIN_SRC swift
+      public class ArrayStack<Item>: Stack {
+          private var store: [Item] = []
+          public var isEmpty: Bool {
+              return store.isEmpty
+          }
+          public var count: Int {
+              return store.count
+          }
+
+          public func push(_ item: Item) {
+              store.append(item)
+          }
+
+          public func pop() -> Item? {
+              return store.popLast()
+          }
+
+          public func peek() -> Item? {
+              return store.last
+          }
+      }
+    #+END_SRC
+*** 链式栈
+    #+NAME: list-stack
+    #+BEGIN_SRC swift
+      private class ListNode<Value> {
+          var val: Value
+          var next: ListNode?
+          init(_ val: Value) {
+              self.val = val
+              self.next = nil
+          }
+      }
+
+      public class ListStack<Item>: Stack {
+          private var head: ListNode<Item>? = nil
+          public var isEmpty: Bool {
+              return head == nil
+          }
+          public private(set) var count: Int = 0
+
+          public func push(_ item: Item) {
+              let newNode = ListNode(item)
+              if head == nil {
+                  head = newNode
+              } else {
+                  newNode.next = head
+                  head = newNode
+              }
+              count += 1
+          }
+
+          public func pop() -> Item? {
+              guard let head = head else {
+                  return nil
+              }
+              self.head = head.next
+              head.next = nil
+              return head.val
+          }
+
+          public func peek() -> Item? {
+              return head?.val
+          }
+      }
+    #+END_SRC
+*** 复杂度分析
+    这里以“支持动态扩容的顺序栈”为例进行分析
+    * 出栈操作：O(1)
+      出栈不涉及内存申请和数据搬移，所以是O(1)的时间复杂度。
+    * 入栈操作：最好 O(1), 最坏 O(n), 均摊 O(1) 
+** 栈的应用
+   * 函数调用中的应用 -- 调用栈
+   * 栈在表达式求值中的应用
+     使用两个栈，一个栈存操作数，一个栈存操作符
+   * 栈在括号匹配中的应用
+** 典型例题
+*** 有效的括号
+    #+NAME: valid-parentheses
+    #+BEGIN_SRC swift
+      class Solution {
+          func isValid(_ s: String) -> Bool {
+              var stack = [Character]()
+              for char in Array(s) {
+                  switch char {
+                  case "(": stack.append(")")
+                  case "[": stack.append("]")
+                  case "{": stack.append("}")
+                  default:
+                      if stack.isEmpty || char != stack.removeLast() {
+                          return false
+                      }
+                  }
+              }
+              return stack.isEmpty
+          }
+      }
+    #+END_SRC
+    
+    #+NAME: valid-parentheses-tests
+    #+BEGIN_SRC swift :noweb yes
+      <<valid-parentheses>>
+      func test(_ cases: [String], _ ans: [Bool]) {
+          for pair in zip(cases, ans) {
+              let result = Solution().isValid(pair.0) == pair.1 ? "passed" : "failed"
+              print("for case \"\(pair.0)\" " + result)
+          }
+      }
+
+      let cases = [" ", "()", "{]", "()[]{}", "([)]"]
+      let ans = [false, true, false, true, false]
+
+      test(cases, ans)
+    #+END_SRC
+
+    #+RESULTS: valid-parentheses-tests
+    : for case " " passed
+    : for case "()" passed
+    : for case "{]" passed
+    : for case "()[]{}" passed
+    : for case "([)]" passed
+*** 最小栈                                                           :单调栈:
+    :PROPERTIES:
+    :LEETCODE_ID: 155
+    :DIFFICULTY: easy
+    :END:
+    #+NAME: min-stack
+    #+BEGIN_SRC swift
+      class MinStack {
+          private var store = [Int]()
+          private var min = [Int]()
+
+          init() {}
+
+          func push(_ x: Int) {
+              store.append(x)
+              if min.isEmpty || x <= (min.last ?? 0) {
+                  min.append(x)
+              }
+          }
+
+          func pop() {
+              if store.isEmpty { return }
+              let popped = store.popLast()
+              if popped == min.last {
+                 _ = min.popLast()
+              }
+          }
+
+          func top() -> Int {
+              guard let top = store.last else { fatalError() }
+              return top
+          }
+
+          func getMin() -> Int {
+              guard let top = min.last else { fatalError() }
+              return top
+          }
+      }
+
+      var result = [String]()
+      let expected = ["true", "0", "-2"]
+      var minStack = MinStack()
+      minStack.push(-2)
+      minStack.push(0)
+      minStack.push(-3)
+      result.append("\(minStack.getMin() == -3)")
+      minStack.pop()
+      result.append("\(minStack.top())")
+      result.append("\(minStack.getMin())")
+      print("expected: \(expected), result: \(result)", (result == expected ? "passed" : "failued"))
+    #+END_SRC
+
+    #+RESULTS: min-stack
+    : expected: ["true", "0", "-2"], result: ["true", "0", "-2"] passed
+*** 用栈实现队列
+    :PROPERTIES:
+    :LEETCODE_ID: 232
+    :DIFFICULTY: easy
+    :END:
+    
+    思路:
+    * 使用两个栈(front, back)实现队列，当有新的元素入列，将元素压入front栈中。
+    * 如果调用出列操作，先检查back栈是否为空；如果为空，则需要先把front中所有的
+      元素出栈，压入到back中，然后再调用back的出栈操作即可
+      
+    需要注意下方实现moveItems的实现，因为是用数组模拟栈，所以应该从后往前遍历数
+    组元素，并加入到back中。遍历完成之后要将front数组清空。
+    #+NAME: my-queue-with-stack
+    #+BEGIN_SRC swift
+      class MyQueue {
+
+          var front: [Int] = []
+          var back: [Int] = []
+
+          /** Initialize your data structure here. */
+          init() {
+
+          }
+
+          /** Push element x to the back of queue. */
+          func push(_ x: Int) {
+              front.append(x)
+          }
+
+          /** Removes the element from in front of queue and returns that element. */
+          func pop() -> Int {
+              if back.isEmpty {
+                  moveItems()
+              }
+              return back.removeLast()
+          }
+
+          /** Get the front element. */
+          func peek() -> Int {
+              if back.isEmpty {
+                  moveItems()
+              }
+              return back.last!
+          }
+    
+          /** Returns whether the queue is empty. */
+          func empty() -> Bool {
+              return front.isEmpty && back.isEmpty
+          }
+    
+          private func moveItems() {
+              for value in front.reversed() {
+                  back.append(value)
+              }
+              front.removeAll()
+          }
+      }
+    #+END_SRC
+*** 比较含退格的字符串
+    :PROPERTIES:
+    :LEETCODE_ID: 844
+    :DIFFICULTY: easy
+    :END:
+
+    思路：
+    1. 将字符串按字符入栈
+    2. 如果遇到退格（#），弹出一个字符
+    3. 直至遍历完成，检查两个栈内元素是否相等
+
+    #+NAME: backspace-string-compare
+    #+BEGIN_SRC swift
+      class Solution {
+          func backspaceCompare(_ S: String, _ T: String) -> Bool {
+              var sStack = stack(from: S)
+              var tStack = stack(from: T)
+              return sStack == tStack
+          }
+
+          private func stack(from string: String) -> [Character] {
+              var stack = [Character]()
+              for char in Array(string) {
+                  if char == "#" {
+                      stack.popLast()
+                  } else {
+                      stack.append(char)
+                  }
+              }
+              return stack
+          }
+      }
+    #+END_SRC
+*** 棒球比赛
+    :PROPERTIES:
+    :LEETCODE_ID: 682
+    :DIFFICULTY: easy
+    :END:
+    
+    思路:
+    1. 使用栈保存每一轮得分
+    2. 遍历的时候累加得到最后的结果
+       
+    #+NAME: baseball-game
+    #+BEGIN_SRC swift
+      class Solution {
+          func calPoints(_ ops: [String]) -> Int {
+              var roundPoint = [Int]()
+              var sum = 0
+              for char in Array(ops) {
+                  let point: Int
+                  if char == "C" {
+                      point = roundPoint.popLast() ?? 0
+                  } else if char == "D" {
+                      point = (roundPoint.last ?? 0) * 2
+                      roundPoint.append(point)
+                  } else if char == "+" {
+                      let pop1 = roundPoint.popLast() ?? 0
+                      let pop2 = roundPoint.popLast() ?? 0
+                      point = pop1 + pop2
+                      roundPoint.append(pop2)
+                      roundPoint.append(pop1)
+                      roundPoint.append(point)
+                  } else {
+                      point = Int(char) ?? 0
+                      roundPoint.append(point)
+                  }
+                  sum += point
+              }
+              return sum
+          }
+      }
+    #+END_SRC
+    
+*** 下一个更大元素                                                   :单调栈:
+    :PROPERTIES:
+    :LEETCODE_ID: 496
+    :DIFFICULTY: easy
+    :END:
+    
+    该题有两种解法，使用迭代和使用栈
+   
+**** 迭代 
+     最简单直接的思路是，在nums2中找到nums1中的元素，nums2中的该元素所在的位置开
+     始遍历数组，记录满足条件的元素。代码 1)。
+
+     代码1可以使用hash对查找效率进行优化，如代码2)。
+     
+**** 栈
+     是有单调栈，我们可以先遍历nums2，找到该数组中所有元素的下一个更大元素，并存
+     入字典，然后遍历num1，在字典中找到“下一个更大元素”，如代码3)s。
+   
+**** 代码 
+      #+NAME: next-greater-element-i
+      #+BEGIN_SRC swift
+        class Solution {
+            var nextGreaterElement: ([Int], [Int]) -> [Int] {
+                return nextGreaterElement_stack
+            }
+
+            // 1)
+            func nextGreaterElement_iterate_slow(_ nums1: [Int], _ nums2: [Int]) -> [Int] {
+                // bounds
+                if nums1.isEmpty { return [] }
+                if nums2.isEmpty { return [Int](repeating: -1, count: nums1.count) }
+
+                // iterate
+                var result = [Int](repeating: -1, count: nums1.count)
+                for i in 0..<nums1.count {
+                    guard let index = nums2.firstIndex(of: nums1[i]) else { continue }
+                    for j in index ..< nums2.count {
+                        if nums2[j] > nums1[i] {
+                            result[i] = nums2[j]
+                            break
+                        }
+                    }
+                }
+                return result
+            }
+
+            // 2)
+            func nextGreaterElement_iterate(_ nums1: [Int], _ nums2: [Int]) -> [Int] {
+                if nums1.isEmpty { return [] }
+                var hash = [Int: Int]()
+                for (idx, num) in nums2.enumerated() {
+                    hash[num] = idx
+                }
+                var result = [Int]()
+                outer: for num in nums1 {
+                    guard let n = hash[num] else { continue }
+                    for i in n..<nums2.count where nums2[i] > num {
+                        result.append(nums2[i])
+                        continue outer
+                    }
+                    result.append(-1)
+                }
+                return result
+            }
+
+            // 3)
+            func nextGreaterElement_stack(_ nums1: [Int], _ nums2: [Int]) -> [Int] {
+                if nums1.isEmpty { return [] }
+                var hash: [Int: Int] = [:]
+                var stack: [Int] = []
+                for n in nums2 {
+                    while let top = stack.last, n > top {
+                        hash[stack.removeLast()] = n
+                    }
+                    stack.append(n)
+                }
+                while let top = stack.popLast() {
+                    hash[top] = -1
+                }
+                return nums1.compactMap { n in hash[n] }
+            }
+        }
+      #+END_SRC
+
+*** 下一个更大元素II                                                 :单调栈:
+    :PROPERTIES:
+    :DIFFICULTY: Medium
+    :LEETCODE_ID: 503
+    :END:
+  
+**** 迭代  
+     遍历数组长度为n的数组，位置为i的元素的下一个更大元素应该在 i+1..<n 和 0..<i
+     的范围内。
+
+**** 栈
+     如何模拟循环数组
+     1. 迭代的解题思路所说，对于每个i，使用 i+1..<n 和 0 ..<i 构建一个新的数组，
+        但是这样每次迭代都要构建新数组，效率不高。
+     2. 在遍历执行前就将数组扩展两倍，这样有些浪费存储空间。
+     3. 对下标使用模运算，模拟循环数组。 
+        #+BEGIN_SRC swift
+          var arr = [1,2,3,4,5]
+          var n = array.count
+          var i = 0
+          while true {
+              print(arr[i % n])
+              i += 1
+          }
+        #+END_SRC
+
+**** 代码
+     #+NAME: next-greater-element-ii
+     #+BEGIN_SRC swift
+       class Solution {
+           // 迭代解法 T
+           func nextGreaterElements_iterate(_ nums: [Int]) -> [Int] {
+               var ans = [Int](repeating: -1, count: nums.count)
+               for (idx, num) in nums.enumerated() {
+                   let new = nums[idx+1..<nums.count] + nums[0..<idx]
+                   for greater in new where greater > num { 
+                       ans[idx] = greater 
+                       break
+                   }
+               }
+               return ans
+           }
+
+           func nextGreaterElements_stack(_ nums: [Int]) -> [Int] {
+               var ans = [Int](repeating: -1, count: nums.count)
+               var stack = [Int]()
+               var n = nums.count
+               for i in (0...2 * (n - 1)).reversed() {
+                   let idx = i % n
+                   let num = nums[idx]
+                   while let top = stack.last, num >= top {
+                       stack.removeLast()
+                   }
+                   ans[idx] = stack.isEmpty ? -1 : stack.top ?? -1
+                   stack.append(num)
+               }
+               return ans
+           }
+       }
+    #+END_SRC
+
+*** 柱状图中的最大矩形                                               :单调栈:
+
+    思路：
+    要计算矩形面积必须知道宽和高，高度为第i个元素，要计算宽度我们需要找到第i个元
+    素对应的左右边界，left和right。 left为i左边第一个小于i的后一个，right为i右边
+    第一个小于i的前一个。
+
+    可以利用一个单调递增的栈来确定i的左右边界
+    #+NAME: largest-rectangle-in-histogram
+    #+BEGIN_SRC swift
+      class Solution {
+          func largestRectangleArea(_ heights: [Int]) -> Int {
+              if heights.isEmpty { return 0 }
+              let heights = [0] + heights + [0]
+              var stack = [Int]()
+              var result = 0
+              for (idx, height) in heights.enumerated() {
+                  while let top = stack.last, heights[top] > height {
+                      let popped = stack.removeLast()
+                      result = max(result, (idx - (stack.last ?? 0) - 1) * heights[popped])
+                  }
+                  stack.append(idx)
+              }
+              return result
+          }
+      }
+    #+END_SRC
+    
+    #+BEGIN_SRC swift :noweb yes
+      <<largest-rectangle-in-histogram>>
+      print(Solution().largestRectangleArea([2,1,5,6,2,3]) == 10 ? "passed" : "failed")
+    #+END_SRC
+
+    #+RESULTS:
+    : passed
+   
+*** 接雨水                                                           :单调栈:
+    #+NAME: trap-water
+    #+BEGIN_SRC swift
+      class Solution {
+          func trap(_ height: [Int]) -> Int {
+              var heights = height
+              var stack: [Int] = []
+              var sum = 0
+              for (idx, height) in heights.enumerated() {
+                  while let top = stack.last, heights[top] < height {
+                      var h = heights[top]
+                      stack.removeLast()
+                      if stack.isEmpty {
+                          break
+                      }
+                      let width = idx - (stack.last ?? 0) - 1
+                      let minH = min(heights[stack.last ?? 0], heights[idx])
+                      sum += width * (minH - h)
+                  }
+                  stack.append(idx)
+              }
+              return sum
+          }
+      }
+    #+END_SRC
+*** 简化路径
+    使用 "/" 将字符串分割成数组，数组内的元素有四种组成 ".", "..", "" 以及其他字
+    符组合，按照题目要求处理即可。
+    #+NAME: simplify-path-with-advance-api
+    #+BEGIN_SRC swift 
+      class Solution {
+          func simplifyPath(_ path: String) -> String {
+              var stack: [String] = []
+              let elements = path.split(separator: "/")
+              for element in elements {
+                  if element == ".." {
+                      _ = stack.popLast()
+                  } else if element == "." || element == "" {
+                      continue
+                  } else {
+                      stack.append(String(element))
+                  }
+              }
+              return "/" + stack.joined(separator: "/")
+          }
+      }
+    #+END_SRC
+
+    
+
+
