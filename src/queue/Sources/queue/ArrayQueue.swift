@@ -1,5 +1,5 @@
 public class ArrayQueue<Item>: Queue {
-    private var store: [Item]
+    private var store: [Item?]
     public let capacity: Int
 
     private var head = 0
@@ -7,7 +7,7 @@ public class ArrayQueue<Item>: Queue {
 
     public init(capacity: Int) {
         self.capacity = capacity
-        self.store = [Item]()
+        self.store = [Item?](repeating: nil, count: capacity)
     }
 
     @discardableResult
@@ -20,7 +20,7 @@ public class ArrayQueue<Item>: Queue {
            tail -= head
            head = 0 
        }
-        store.append(item)
+        store[tail] = item
         tail += 1
         return true
     }
