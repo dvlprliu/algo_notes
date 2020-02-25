@@ -12,7 +12,14 @@ public class ArrayQueue<Item>: Queue {
 
     @discardableResult
     public func enqueue(_ item: Item) -> Bool {
-        if tail >= capacity { return false }
+       if tail == capacity {
+           if head == 0 { return false }
+           for i in head..<tail {
+               store[i - head] = store[i]
+           }
+           tail -= head
+           head = 0 
+       }
         store.append(item)
         tail += 1
         return true
