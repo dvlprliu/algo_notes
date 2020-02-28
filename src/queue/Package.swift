@@ -10,6 +10,9 @@ let package = Package(
         .library(
             name: "queue",
             targets: ["queue"]),
+        .library(
+            name: "leetcode",
+            targets: ["leetcode"]),
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
