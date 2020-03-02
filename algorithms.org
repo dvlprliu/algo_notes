@@ -1489,7 +1489,7 @@
 ** 排序的方法与时间复杂度归类
    1. 几种最经典、最常用的排序方法：冒泡排序、插入排序、选择排序、快速排序、归并
       排序、计数排序、计数排序、基数排序、桶排序
-   2. 复杂度归类
+   2. 复杂度归类 (按时间复杂度分)
       * 冒泡排序、选择排序、插入排序 O(n^2)
       * 快速排序、归并排序 O(nlogn)
       * 计数排序、基数排序、桶排序 O(n)
@@ -1511,6 +1511,18 @@
          相同的订单，按照创建订单时间先后进行排序。
    3. 排序的内存损耗：
       原地排序： O(1)的时间复杂度
+   4. 个算法比较 
+   |           | complex  | stable | in place |
+   |-----------+----------+--------+----------|
+   | bubble    | O(n^2)   | yes    | yes      |
+   | insertion | O(n^2)   | yes    | yes      |
+   | selection | O(n^2)   | no     | yes      |
+   | quick     | O(nlogn) | no     | yes      |
+   | merge     | O(nlogn) | yes    | no       |
+   | counting  | O(k+n)   | yes    | no       |
+   | bucket    | O(n)     | yes    | no       |
+   | radix     | O(d*n)   | yes    | no       |
+   其中 counting 中的 k 为数据范围， radix中的 d 为唯独
 ** 冒泡排序
    冒泡排序只会操作相邻的两个数据，每次冒泡操作都会对相邻的两个元素进行比较，看
    是否满足大小关系要求，如果不满足就让它俩交换。
@@ -1534,10 +1546,10 @@
                }
            }
        }
-    #+END_SRC
+     #+END_SRC
 
 ** 插入排序
-   插入排序将数组分为“已排序区间”和“未排序区间”。出事已排序区间只有一个元素，即
+   插入排序将数组分为“已排序区间”和“未排序区间”。初始已排序区间只有一个元素，即
    数组的第一个元素。在未排序区间取出一个元素插入到已排序区间的合适位置，知道未
    排序区间为空。
    * 稳定性：稳定的
@@ -1560,12 +1572,11 @@
                }
            }
        }
-
      #+END_SRC
 
 ** 选择排序
-   选择排序将数组分成已排序区间和未排序区间。出事已排序区间为空。每次从未排序区
-   间中选出最小的元素插入已排序区间的末尾，知道未排序区间为空。
+   选择排序将数组分成已排序区间和未排序区间。初始已排序区间为空。每次从未排序区
+   间中选出最小的元素插入已排序区间的末尾，直到未排序区间为空。
    * 稳定性：不稳定的
    * 空间复杂度：原地排序 O(1)
    * 时间复杂度：
@@ -1589,4 +1600,164 @@
            }
        }
     #+END_SRC
+
+** 归并排序
+   要排序一个数组，我们先把数组从中间分成前后两个部分，然后对前后两个部分分别排
+   序，再将两个排好序的数组合并成一个，整个数组就排好序了。使用了 *分治* 的思想
+   实现的一种排序算法。
+   * 稳定性：稳定的
+   * 空间复杂度：非原地排序算法 O(n)
+   * 时间复杂度：最好、最坏、平均情况下均为 O(nlogn)
+   * 实现：
+     #+NAME: merge-sort
+     #+BEGIN_SRC swift
+       func mergeSort(_ array: [Int]) -> [Int] {
+           guard array.count > 1 else { return array }
+
+           let middleIndex = array.count / 2
+           let leftArray = mergeSort(Array(array[0..<middleIndex]))
+           let rightArray = mergeSort(Array(array[middleIndex..<array.count]))
+
+           return merge(leftArray, rightArray)
+       }
+
+       func merge(_ left: [Int], _ right: [Int]) -> [Int] {
+           var leftIndex = 0
+           var rightIndex = 0
+
+           var orderd = [Int]()
+           while leftIndex < left.count && rightIndex < right.count {
+               if left[leftIndex] < right[rightIndex] {
+                   orderd.append(left[leftIndex])
+                   leftIndex += 1
+               } else if left[leftIndex] > right[rightIndex] {
+                   orderd.append(right[rightIndex])
+                   rightIndex += 1
+               } else {
+                   orderd.append(left[leftIndex])
+                   leftIndex += 1
+                   orderd.append(right[rightIndex])
+                   rightIndex += 1
+               }
+           }
+
+           while leftIndex < left.count {
+               orderd.append(left[leftIndex])
+               leftIndex += 1
+           }
+           while rightIndex < right.count {
+               orderd.append(right[rightIndex])
+               rightIndex += 1
+           }
+
+           return orderd
+       }
+     #+END_SRC
+
+** 快速排序
+   如果要排序数组下标从p到r之间的一组数组，我们选择p到r之间的任意一个数组作为“分
+   区点(pivot)”。将小于pivot的数据放到左边，将pivot的数据放到右边，将pivot放到中
+   间，。经过这样的步骤之后，数组p到r就被分为了三个部分，p到q-1的数据都是小于
+   pivot的，中间是pivot，q+1到r之间的数据都是大于pivot的。
+   根据递归分治的思想，我们可以用递归排序小表p到q-1的数据和下标从q+1到r的数据，
+   直到区间缩小为1，就说明所有的数据都有序了。
+   * 稳定性：不稳定
+   * 空间复杂度：原地排序 O(1)
+   * 时间复杂度：大部分情况下O(nlogn) 极少情况下退化为O(n^2)
+   * 实现：
+     #+NAME: quicksort
+     #+BEGIN_SRC swift
+       func quicksort<T: Comparable>(_ a: inout [T]) {
+           quicksortLomuto(&a, low: 0, high: a.count - 1)
+       }
+
+       func quicksortLomuto<T: Comparable>(_ a: inout [T], low: Int, high: Int) {
+           if low < high {
+               let p = partitionLomuto(&a, low: low, high: high)
+               quicksortLomuto(&a, low: low, high: p - 1)
+               quicksortLomuto(&a, low: p + 1, high: high)
+           }
+       }
+
+       func partitionLomuto<T: Comparable>(_ a: inout [T], low: Int, high: Int) -> Int {
+           let pivot = a[high]
+
+           var i = low
+           for j in low..<high {
+               if a[j] <= pivot {
+                   a.swapAt(i, j)
+                   i += 1
+               }
+           }
+           a.swapAt(i, high)
+           return i
+       }
+
+       var list = [ 10, 0, 3, 9, 2, 14, 26, 27, 1, 5, 8, -1, 8 ]
+       quicksort(&list)
+
+    #+END_SRC
+
+*** 优化快速排序
+    快速排序在最坏情况下时间复杂度会退化为O(n^2)，这种退化主要是因为分区点选的不
+    够合理。理想的分区点是: *被分区点分开的两个分区中，数据数量差不多* ，简单的
+    分区算法有：
+    * 三数取中法：从区间的首，尾，中分别取一个数，然后对比大小，取这3个数的中间
+      值作为分区点。如果排序数组比较大，那”三数取中“可能不够，可能要“五数取中”，
+      “十数取中”。
+    * 随机法：随机法就是每次从要排序的区间中，随机选择一个元素作为分区点。
+
+*** 其他分区算法：
+    * [[https://github.com/raywenderlich/swift-algorithm-club/tree/master/Quicksort#lomutos-partitioning-scheme][Lomuto's partitioning scheme]]
+    * [[https://github.com/raywenderlich/swift-algorithm-club/tree/master/Quicksort#hoares-partitioning-scheme][Hoare's partitioning scheme]]
+    * [[https://github.com/raywenderlich/swift-algorithm-club/tree/master/Quicksort#dutch-national-flag-partitioning][Dutch national flag partitioning]] 
+
+** 桶排序
+   将要排序的数据放到几个有序的桶里面，每个痛的数据在单独进行排序。桶内排序完之
+   后，再把每个桶里的数据按照顺序依次取出，组成的序列就是有序的了。
+   * 稳定性： -
+   * 空间复杂度：O(n)
+   * 时间复杂度：在适用场景下为线性 O(n)，极端情况下退化为O(nlogn)
+   * 适用场景
+     * 要排序的数据需要很容易被划分成m个桶，并且桶与桶之间有着天然的大小顺序
+     * 数据在个桶之间的分布比较均匀
+     * 桶排序还适合用在 *外部排序* 中
+
+** 计数排序
+   当要排序的n个数据，所处的防伪并不大的时候，比如最大值是k，我们就可以把数据划
+   分成k个桶，每个桶内的数据值都是相同的，省掉了桶内排序的时间。
+   * 稳定性：可以稳定的
+   * 空间复杂度：O(n)
+   * 时间复杂度：O(n)
+   * 适用场景：如果排序数据范围k比要排序的数据n大很多，就不适合适用计数排序了。
+     而且，计数排序只能给非负整数排序，如果排序的数据是其他类型的，要将其在不改
+     变相对大小的情况下，转化为非负整数。
+   #+NAME: counting-sort
+   #+BEGIN_SRC swift
+     func countingSort(_ array: [Int]) -> [Int] {
+         guard array.count > 0 else { return [] }
+         let maxElement = array.max() ?? 0
+
+         var countArray = [Int](repeating: 0, count: maxElement + 1)
+         for element in array {
+             countArray[element] += 1
+         }
+
+         for index in 1 ..< countArray.count {
+             let sum = countArray[index] + countArray[index - 1]
+             countArray[index] = sum
+         }
+
+         var sortedArray = [Int](repeating: 0, count: array.count)
+         for element in array {
+             countArray[element] -= 1
+             sortedArray[countArray[element]] = element
+         }
+         return sortedArray
+     }
+   #+END_SRC
+
+** 基数排序
+** Swift中的排序算法
+   Swift使用稳定的，适应性的归并排序，时间复杂度为O(n log n)
 
