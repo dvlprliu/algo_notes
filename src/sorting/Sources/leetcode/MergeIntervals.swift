@@ -14,8 +14,8 @@ extension Solution {
             var j = i
             var merged = intervals[i]
             while j < intervals.count - 1 {
-                if merged[1] >= intervals[j+1][0] {
-                    merged = [merged[0], max(merged[1], intervals[j+1][1])]
+                if merged[1] >= intervals[j + 1][0] {
+                    merged = [merged[0], max(merged[1], intervals[j + 1][1])]
                     j += 1
                 } else {
                     break
@@ -27,4 +27,5 @@ extension Solution {
         return result
     }
 }
+
 // @lc code=end

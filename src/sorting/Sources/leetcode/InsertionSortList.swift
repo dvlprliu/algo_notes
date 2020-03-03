@@ -18,30 +18,29 @@
  */
 extension Solution {
     func insertionSortList(_ head: ListNode?) -> ListNode? {
-      let dummy = ListNode(Int.min)
-      var pre: ListNode? = dummy
-      var tail: ListNode? = dummy
-      var cur = head
-      while cur != nil {
-        if tail!.val < cur!.val {
-          tail?.next = cur
-          tail = cur
-          cur = cur?.next
-        } else {
-          let tmp = cur?.next
-          tail?.next = cur?.next
-          while pre?.next != nil && pre!.next!.val < cur!.val {
-            pre = pre?.next
-          }
-          cur?.next = pre?.next
-          pre?.next = cur
-          pre = dummy
-          cur = tmp
+        let dummy = ListNode(Int.min)
+        var pre: ListNode? = dummy
+        var tail: ListNode? = dummy
+        var cur = head
+        while cur != nil {
+            if tail!.val < cur!.val {
+                tail?.next = cur
+                tail = cur
+                cur = cur?.next
+            } else {
+                let tmp = cur?.next
+                tail?.next = cur?.next
+                while pre?.next != nil, pre!.next!.val < cur!.val {
+                    pre = pre?.next
+                }
+                cur?.next = pre?.next
+                pre?.next = cur
+                pre = dummy
+                cur = tmp
+            }
         }
-      }
-      return dummy.next
+        return dummy.next
     }
 }
 
 // @lc code=end
-

@@ -1,6 +1,6 @@
-import XCTest
 import Foundation
 @testable import sorting
+import XCTest
 
 final class sortingTests: XCTestCase {
     func testBubbleSort() {
@@ -25,25 +25,25 @@ final class sortingTests: XCTestCase {
 
     func sortingTest(_ sortMethod: ([Int]) -> [Int], line: UInt = #line) {
         let tests = [
-         [],
-         [ 0 ],
-         [ 0, 0 ],
-         [ 0, 0, 0 ],
-         [ 0, 1 ],
-         [ 1, 0 ],
-         [ 0, 1, 2 ],
-         [ 0, 2, 1 ],
-         [ 1, 0, 2 ],
-         [ 1, 2, 0 ],
-         [ 2, 0, 1 ],
-         [ 2, 1, 0 ],
-         [ 0, 1, 1 ],
-         [ 1, 0, 1 ],
-         [ 1, 1, 0 ],
-         [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ],
-         [ 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 ],
-         [ 42, 9, 17, 54, 602, -3, 54, 999, -11 ],
-         [ -11, -3, 9, 17, 42, 54, 54, 602, 999 ],
+            [],
+            [0],
+            [0, 0],
+            [0, 0, 0],
+            [0, 1],
+            [1, 0],
+            [0, 1, 2],
+            [0, 2, 1],
+            [1, 0, 2],
+            [1, 2, 0],
+            [2, 0, 1],
+            [2, 1, 0],
+            [0, 1, 1],
+            [1, 0, 1],
+            [1, 1, 0],
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+            [10, 9, 8, 7, 6, 5, 4, 3, 2, 1],
+            [42, 9, 17, 54, 602, -3, 54, 999, -11],
+            [-11, -3, 9, 17, 42, 54, 54, 602, 999],
         ]
         var randomTests = [[Int]]()
         for _ in 0...9 {
@@ -60,7 +60,7 @@ final class sortingTests: XCTestCase {
             nums.map(String.init).joined(separator: ", ")
         }
         let allCases = tests + randomTests
-        allCases.enumerated().forEach { pair in 
+        allCases.enumerated().forEach { pair in
             let (index, array) = pair
             let sorted = sortMethod(array)
             if sorted == array.sorted() {
