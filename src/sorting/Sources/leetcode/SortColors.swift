@@ -26,6 +26,26 @@ extension Solution {
         }
         nums = sortedNums
     }
+
+    func sortColors_dutchFlag(_ nums: inout [Int]) {
+        guard nums.count > 1 else {
+            return
+        }
+
+        var p0 = 0, cur = 0, p2 = nums.count - 1
+        while cur <= p2 {
+            if nums[cur] == 0 {
+                nums.swapAt(cur, p0)
+                p0 += 1
+                cur += 1
+            } else if nums[cur] == 2 {
+                nums.swapAt(cur, p2)
+                p2 -= 1
+            } else {
+                cur += 1
+            }
+        }
+    }
 }
 // @lc code=end
 

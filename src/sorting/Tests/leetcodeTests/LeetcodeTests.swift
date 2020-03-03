@@ -24,7 +24,8 @@ final class sortingTests: XCTestCase {
 
     func testSortColors() {
         let cases = [
-            [[2,0,2,1,1,0], [0,0,1,1,2,2]]
+            [[2,0,2,1,1,0], [0,0,1,1,2,2]],
+            [[2,0,1], [0,1,2]]
         ]
 
         cases.forEach { (pair) in
@@ -32,6 +33,22 @@ final class sortingTests: XCTestCase {
             let ans  = pair[1]
             var copy = test
             solution.sortColors(&copy)
+            XCTAssertEqual(copy, ans)
+        }
+    }
+
+    func testSortColors_dutchFlag() {
+        let cases = [
+            [[2,0,2,1,1,0], [0,0,1,1,2,2]],
+            [[2,0,1], [0,1,2]],
+            [[1,2,0], [0,1,2]]
+        ]
+
+        cases.forEach { (pair) in
+            let test = pair[0]
+            let ans  = pair[1]
+            var copy = test
+            solution.sortColors_dutchFlag(&copy)
             XCTAssertEqual(copy, ans)
         }
     }
