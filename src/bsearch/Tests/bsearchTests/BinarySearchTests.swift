@@ -3,17 +3,25 @@ import XCTest
 
 final class bsearchTests: XCTestCase {
     func testBsearchIterate() {
-        let nums = [8, 11, 19, 23, 27, 33, 45, 55, 67]
-        let n = 27
-        let ans = nums.firstIndex(of: n)
-        XCTAssertEqual(BinarySearch().bsearchIterate(nums, n), ans)
+        let cases = [
+            ([8, 11, 19, 23, 27, 33, 45, 55, 67], 27, 4),
+            ([8, 11, 19, 23, 27, 33, 45, 55, 67], 76, -1)
+        ]
+        cases.forEach { (case) in
+            let (nums, target, ans) = `case`
+            XCTAssertEqual(BinarySearch().bsearchIterate(nums, target), ans)
+        }
     }
 
     func testBsearchRecursive() {
-        let nums = [8, 11, 19, 23, 27, 33, 45, 55, 67]
-        let n = 27
-        let ans = nums.firstIndex(of: n)
-        XCTAssertEqual(BinarySearch().bsearchRecursive(nums, n), ans)
+        let cases = [
+            ([8, 11, 19, 23, 27, 33, 45, 55, 67], 27, 4),
+            ([8, 11, 19, 23, 27, 33, 45, 55, 67], 76, -1)
+        ]
+        cases.forEach { (case) in
+            let (nums, target, ans) = `case`
+            XCTAssertEqual(BinarySearch().bsearchRecursive(nums, target), ans)
+        }
     }
 
     func testBsearchVariations_findFirstEqualTo() {
