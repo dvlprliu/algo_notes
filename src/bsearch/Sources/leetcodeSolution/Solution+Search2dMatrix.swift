@@ -34,6 +34,23 @@ import Foundation
 
 extension Solution {
     func searchMatrix(_ matrix: [[Int]], _ target: Int) -> Bool {
-        return !matrix.filter { $0.contains(target) }.isEmpty
+        if matrix.isEmpty || matrix[0].isEmpty { return false }
+        let m = matrix[0].count // columns
+        let n = matrix.count    // rows
+        var low = 0
+        var high = m * n - 1
+        while low <= high {
+            let mid = low + (high - low) / 2
+            let value = matrix[mid / m][mid % m]
+            if value == target {
+                return true
+            }
+            if target < value {
+                high = mid - 1
+            } else {
+                low = mid + 1
+            }
+        }
+        return false
     }
 }

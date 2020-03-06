@@ -78,7 +78,7 @@ final class SolutionTests: XCTestCase {
                 [1, 3, 5, 7],
                 [10, 11, 16, 20],
                 [23, 30, 34, 50]
-            ], 13, false),
+            ], 8, false),
             ([
                 [1], [3], [5]
             ], 5, true),
@@ -91,9 +91,12 @@ final class SolutionTests: XCTestCase {
         ]
 
         let solution = Solution()
+        var count = 0
         cases.forEach { `case` in
+            print("testing case \(count)")
             let (matrix, target, ans) = `case`
             XCTAssertEqual(solution.searchMatrix(matrix, target), ans)
+            count += 1
         }
     }
 }
