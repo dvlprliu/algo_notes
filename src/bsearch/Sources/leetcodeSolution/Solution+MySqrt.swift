@@ -9,18 +9,16 @@ import Foundation
 
 extension Solution {
     func mySqrt(_ x: Int) -> Int {
-        var low = 0
-        var high = x
-        while low <= high {
-            let mid = low + (high - low) / 2
+        if x == 0 { return 0 }
+        var low = 1
+        var high = x / 2
+        while low < high {
+            let mid = (low + high + 1) / 2
             let target = mid * mid
-            if target <= x {
-                if mid == x / 2 || (mid + 1) * (mid + 1) > x {
-                    return mid
-                }
-                low = mid + 1
-            } else {
+            if target > x {
                 high = mid - 1
+            } else {
+                low = mid
             }
         }
         return low
