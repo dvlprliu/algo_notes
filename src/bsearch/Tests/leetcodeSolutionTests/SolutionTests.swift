@@ -52,6 +52,20 @@ final class SolutionTests: XCTestCase {
             XCTAssertEqual(solution.mySqrt(x), n)
         }
     }
+
+    func testSearchRotatedSortedArray() {
+        let cases = [
+            ([4,5,6,7,0,1,2], 0, 4),
+            ([4,5,6,7,0,1,2], 3, -1),
+            ([3,1], 1, 1)
+        ]
+        let solution = Solution()
+        cases.forEach { (case) in
+            let (nums, target, ans) = `case`
+            let result = solution.search(nums, target)
+            XCTAssertEqual(result, ans, "searching \(target) in \(nums) should be \(ans) but get \(result)")
+        }
+    }
 }
 
 
