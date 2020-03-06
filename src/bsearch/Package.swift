@@ -21,8 +21,14 @@ let package = Package(
         .target(
             name: "bsearch",
             dependencies: []),
+        .target(
+            name: "leetcodeSolution",
+            dependencies: []),
         .testTarget(
             name: "bsearchTests",
             dependencies: ["bsearch"]),
+        .testTarget(
+            name: "leetcodeSolutionTests",
+            dependencies: ["leetcodeSolution"])
     ]
 )
