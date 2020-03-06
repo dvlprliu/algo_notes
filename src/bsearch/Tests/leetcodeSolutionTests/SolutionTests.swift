@@ -31,6 +31,26 @@ final class SolutionTests: XCTestCase {
             XCTAssertEqual(p, ans)
         }
     }
+
+    func testMySqrt() {
+        let cases = [
+            (4, 2),
+            (8, 2),
+            (64, 8),
+            (2, 1),
+            (0, 0)
+        ]
+        let randomTest = (0..<10).map { (_) -> (Int, Int) in
+            let num = Int.random(in: 123...1245)
+            let ans = Int(floor(sqrtf(Float(num))))
+            return (num, ans)
+        }
+        let solution = Solution()
+        (cases + randomTest).forEach { (case) in
+            let (x, n) = `case`
+            XCTAssertEqual(solution.mySqrt(x), n)
+        }
+    }
 }
 
 
