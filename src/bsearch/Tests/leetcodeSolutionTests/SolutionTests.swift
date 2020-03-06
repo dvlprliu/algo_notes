@@ -38,7 +38,8 @@ final class SolutionTests: XCTestCase {
             (8, 2),
             (64, 8),
             (2, 1),
-            (0, 0)
+            (0, 0),
+            (1, 1)
         ]
         let randomTest = (0..<10).map { (_) -> (Int, Int) in
             let num = Int.random(in: 123...1245)
