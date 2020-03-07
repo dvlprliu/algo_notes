@@ -125,4 +125,19 @@ final class SolutionTests: XCTestCase {
             XCTAssertEqual(solution.findMinII(nums), ans)
         }
     }
+
+    func testFindPeakElement() {
+        let cases = [
+            ([1,2,3,1], Set([2])),
+            ([1,2,1,3,5,6,4], Set([1, 5]))
+        ]
+        let solution = Solution()
+        var count = 0
+        cases.forEach { (case) in
+            count += 1
+            let (nums, ans) = `case`
+            let result = solution.findPeakElement(nums)
+            XCTAssertTrue(ans.contains(result), "#\(count): result (\(result)) is not containd correct, should be one of \(ans)")
+        }
+    }
 }
