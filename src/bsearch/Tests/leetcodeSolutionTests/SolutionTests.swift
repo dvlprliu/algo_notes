@@ -111,4 +111,18 @@ final class SolutionTests: XCTestCase {
             XCTAssertEqual(solution.findMinI(nums), ans)
         }
     }
+
+    func testFIndMinII() {
+        let cases: [([Int], Int)] = [
+            ([1,3,5], 1),
+            ([2,2,2,0,1], 0),
+            ([3,3,1,3], 1),
+            ([1,3,3], 1)
+        ]
+        let solution = Solution()
+        cases.forEach { (case) in
+            let (nums, ans) = `case`
+            XCTAssertEqual(solution.findMinII(nums), ans)
+        }
+    }
 }
