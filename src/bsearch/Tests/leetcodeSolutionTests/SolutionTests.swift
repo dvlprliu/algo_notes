@@ -99,4 +99,16 @@ final class SolutionTests: XCTestCase {
             count += 1
         }
     }
+
+    func testFindMinI() {
+        let cases: [([Int], Int)] = [
+            ([3,4,5,1,2], 1),
+            ([4,5,6,7,0,1,2], 0)
+        ]
+        let solution = Solution()
+        cases.forEach { (case) in
+            let (nums, ans) = `case`
+            XCTAssertEqual(solution.findMinI(nums), ans)
+        }
+    }
 }
