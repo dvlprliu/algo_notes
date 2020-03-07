@@ -32,10 +32,15 @@ final class bsearchTests: XCTestCase {
     }
 
     func testBsearchVariations_findLastEqualTo() {
-        let nums = [8, 11, 19, 23, 27, 33, 45, 45, 45, 45, 55, 67]
-        let n = 45
-        let ans = nums.lastIndex(of: n)
-        XCTAssertEqual(BinarySearch().bsearch(from: nums, lastEqualTo: n), ans)
+        let cases = [
+            ([8, 11, 19, 23, 27, 33, 45, 45, 45, 45, 55, 67], 45, 9),
+            ([2,2], 2, 1),
+            ([5,7,7,8,8,10], 6, -1)
+        ]
+        cases.forEach { (case) in
+            let (nums, target, ans) = `case`
+            XCTAssertEqual(BinarySearch().bsearch(from: nums, lastEqualTo: target), ans)
+        }
     }
 
     func testBsearchVariations_findFirstGreaterThanOrEqualTo() {
