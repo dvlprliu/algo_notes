@@ -204,4 +204,21 @@ final class SolutionTests: XCTestCase {
             }
         }
     }
+
+    func testMinSizeSubarraySum() {
+        let cases = [
+            (7, [2,3,1,2,4,3], 2),
+            (100, [], 0),
+            (11, [1,2,3,4,5], 3),
+            (4, [1,4,4], 1),
+            (15, [1,2,3,4,5], 5),
+            (3, [1,1], 0)
+        ]
+        let solution = Solution()
+        for (idx, `case`) in cases.enumerated() {
+            let (sum, nums, ans) = `case`
+            let result = solution.minSubArrayLen(sum, nums)
+            XCTAssertEqual(result, ans, "#\(idx)")
+        }
+    }
 }
