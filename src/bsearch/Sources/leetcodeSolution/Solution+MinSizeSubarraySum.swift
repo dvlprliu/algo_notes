@@ -38,4 +38,36 @@ extension Solution {
         }
         return minLength == nums.count + 1 ? 0 : minLength
     }
+
+    func minSubArrayLen_slidingWindow(_ s: Int, _ nums: [Int]) -> Int {
+        if nums.isEmpty { return 0 }
+        var left = 0
+        var right = 0
+        var minLength = Int.max
+        var sum = 0
+        while right < nums.count {
+            while right < nums.count {
+                sum += nums[right]
+                if sum >= s {
+                    minLength = min(minLength, right - left + 1)
+                    break
+                } else {
+                    right += 1
+                }
+            }
+
+            while left < right {
+                if sum >= s {
+                    sum -= nums[left]
+                    left += 1
+                    minLength = min(minLength, right - left + 1)
+                } else {
+                    right += 1
+                    break
+                }
+            }
+        }
+
+        return minLength == Int.max ? 0 : minLength
+    }
 }

@@ -215,10 +215,16 @@ final class SolutionTests: XCTestCase {
             (3, [1,1], 0)
         ]
         let solution = Solution()
-        for (idx, `case`) in cases.enumerated() {
-            let (sum, nums, ans) = `case`
-            let result = solution.minSubArrayLen(sum, nums)
-            XCTAssertEqual(result, ans, "#\(idx)")
+        let methods = [
+            solution.minSubArrayLen,
+            solution.minSubArrayLen_slidingWindow
+        ]
+        for (mIdx, method) in methods.enumerated() {
+            for (idx, `case`) in cases.enumerated() {
+                let (sum, nums, ans) = `case`
+                let result = method(sum, nums)
+                XCTAssertEqual(result, ans, "testing #\(idx) using method #\(mIdx) failed.")
+            }
         }
     }
 }
