@@ -67,6 +67,28 @@ final class SolutionTests: XCTestCase {
         }
     }
 
+    func testSearchII() {
+        let cases = [
+            ([2,5,6,0,0,1,2], 0, true),
+            ([2,5,6,0,0,1,2], 3, false),
+            ([1,3,5], 1, true),
+            ([1,3,1,1,1], 3, true),
+            ([2,5,6,0,0,1,2], 3, false)
+        ]
+        let solution = Solution()
+        var count = 0
+        cases.forEach { (case) in
+            let (nums, target, ans) = `case`
+            let result = solution.searchII(nums, target)
+            XCTAssertEqual(result, ans, "case #\(count) \(`case`) failed")
+            count += 1
+        }
+    }
+
+    func testSearchRotatedSortedArrayWithDuplicatedElements() {
+
+    }
+
     func testSearchMatrix() {
         let cases = [
             ([
