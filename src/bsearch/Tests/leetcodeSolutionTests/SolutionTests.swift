@@ -183,4 +183,23 @@ final class SolutionTests: XCTestCase {
             count += 1
         }
     }
+
+    func testTowSum() {
+        let cases = [
+            ([2, 7, 11, 15], 9, Set([1,2])),
+            ([3, 3], 6, Set([1, 2]))
+        ]
+        let solution = Solution()
+        let methods = [
+            solution.twoSum_bsearch
+        ]
+
+        for (mIdx, method) in methods.enumerated() {
+            for (cIdx, `case`) in cases.enumerated() {
+                let (nums, target, ans) = `case`
+                let result = method(nums, target)
+                XCTAssertEqual(ans, Set(result), "test #\(cIdx) using \(mIdx) failed, should be \(ans), but get \(result)")
+            }
+        }
+    }
 }
