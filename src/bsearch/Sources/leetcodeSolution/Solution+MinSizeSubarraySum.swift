@@ -46,25 +46,12 @@ extension Solution {
         var minLength = Int.max
         var sum = 0
         while right < nums.count {
-            while right < nums.count {
-                sum += nums[right]
-                if sum >= s {
-                    minLength = min(minLength, right - left + 1)
-                    break
-                } else {
-                    right += 1
-                }
-            }
-
-            while left < right {
-                if sum >= s {
-                    sum -= nums[left]
-                    left += 1
-                    minLength = min(minLength, right - left + 1)
-                } else {
-                    right += 1
-                    break
-                }
+            sum += nums[right]
+            right += 1
+            while sum >= s {
+                minLength = min(minLength, right - left)
+                sum -= nums[left]
+                left += 1
             }
         }
 
