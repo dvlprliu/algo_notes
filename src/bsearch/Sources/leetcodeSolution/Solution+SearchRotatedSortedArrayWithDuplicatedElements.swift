@@ -21,7 +21,6 @@
 // 输入: nums = [2,5,6,0,0,1,2], target = 3
 // 输出: false
 
-
 import Foundation
 
 extension Solution {
@@ -55,5 +54,23 @@ extension Solution {
             }
         }
         return false
+    }
+
+    func searchII_linear_normal(_ nums: [Int], _ target: Int) -> Bool {
+        if nums.isEmpty { return false }
+        for num in nums where num == target {
+            return true
+        }
+        return false
+    }
+
+    func searchII_linear_filter(_ nums: [Int], _ target: Int) -> Bool {
+        if nums.isEmpty { return false }
+        return !nums.filter { $0 == target }.isEmpty
+    }
+
+    func searchII_linear_firstIndex(_ nums: [Int], _ target: Int) -> Bool {
+        if nums.isEmpty { return false }
+        return nums.firstIndex(of: target) != nil
     }
 }

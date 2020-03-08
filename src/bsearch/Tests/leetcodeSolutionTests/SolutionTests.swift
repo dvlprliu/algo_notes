@@ -76,17 +76,23 @@ final class SolutionTests: XCTestCase {
             ([2,5,6,0,0,1,2], 3, false)
         ]
         let solution = Solution()
+        let methods: [(([Int], Int) -> Bool)] = [
+            solution.searchII,
+            solution.searchII_linear_filter,
+            solution.searchII_linear_normal,
+            solution.searchII_linear_firstIndex,
+        ]
         var count = 0
-        cases.forEach { (case) in
-            let (nums, target, ans) = `case`
-            let result = solution.searchII(nums, target)
-            XCTAssertEqual(result, ans, "case #\(count) \(`case`) failed")
-            count += 1
+        var methodNum = 0
+        methods.forEach { method in
+            cases.forEach { (case) in
+                let (nums, target, ans) = `case`
+                let result = method(nums, target)
+                XCTAssertEqual(result, ans, "testing case #\(count) \(`case`) using method #\(methodNum) failed")
+                count += 1
+            }
+            methodNum += 1
         }
-    }
-
-    func testSearchRotatedSortedArrayWithDuplicatedElements() {
-
     }
 
     func testSearchMatrix() {
