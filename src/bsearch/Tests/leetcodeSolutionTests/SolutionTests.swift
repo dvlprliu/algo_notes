@@ -191,7 +191,8 @@ final class SolutionTests: XCTestCase {
         ]
         let solution = Solution()
         let methods = [
-            solution.twoSum_bsearch
+            solution.twoSum_bsearch,
+            solution.twoSum_towPointer
         ]
 
         for (mIdx, method) in methods.enumerated() {
