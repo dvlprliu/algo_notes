@@ -140,4 +140,19 @@ final class SolutionTests: XCTestCase {
             XCTAssertTrue(ans.contains(result), "#\(count): result (\(result)) is not containd correct, should be one of \(ans)")
         }
     }
+
+    func testPeakIndexInMountainArray() {
+        let cases = [
+            ([0, 1, 0], 1),
+            ([0, 2, 1, 0], 1)
+        ]
+        let solution = Solution()
+        var count = 0
+        cases.forEach { (case) in
+            let (nums, ans) = `case`
+            let result = solution.peakIndexInMountainArray(nums)
+            XCTAssertEqual(result, ans, "#\(count) failed, should be \(ans), but get \(result)")
+            count += 1
+        }
+    }
 }
