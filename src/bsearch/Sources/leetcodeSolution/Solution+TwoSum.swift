@@ -33,11 +33,10 @@ extension Solution {
                 let mid = low + (high - low) / 2
                 if nums[mid] == complement {
                     return [idx + 1, mid + 1]
-                }
-                if nums[mid] > target {
-                    high = mid - 1
-                } else {
+                } else if nums[mid] < complement {
                     low = mid + 1
+                } else {
+                    high = mid - 1
                 }
             }
         }
