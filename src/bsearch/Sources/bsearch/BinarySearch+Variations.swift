@@ -2,18 +2,18 @@ extension BinarySearch {
     // 找到第一个等于n的元素
     func bsearch(from nums: [Int], firstEqualTo target: Int) -> Int {
         var low = 0
-        var high = nums.count - 1
-        while low <= high {
-            let mid = low + ((high - low) >> 1)
+        var high = nums.count
+        while low < high {
+            let mid = low + (high - low) / 2
             if nums[mid] == target {
-                high = mid - 1
-            } else if nums[mid] > target {
-                high = mid - 1
+                high = mid
             } else if nums[mid] < target {
                 low = mid + 1
+            } else {
+                high = mid
             }
         }
-        if low >= nums.count || nums[low] != target {
+        if low == nums.count || nums[low] != target {
             return -1
         }
         return low
@@ -43,11 +43,11 @@ extension BinarySearch {
     func bsearch(from nums: [Int], firstGreaterThanOrEqualTo n: Int) -> Int {
         var low = 0
         var high = nums.count
-        while low <= high {
-            let mid = low + ((high - low) >> 1)
+        while low < high {
+            let mid = low + (high - low) / 2
             if nums[mid] >= n {
                 if mid == 0 || nums[mid - 1] < n { return mid }
-                high = mid - 1
+                high = mid
             } else {
                 low = mid + 1
             }
@@ -58,16 +58,14 @@ extension BinarySearch {
     // 找到最后一个小于等于n的元素
     func bsearch(from nums: [Int], lastLessThanOrEqualTo n: Int) -> Int {
         var low = 0
-        var high = nums.count - 1
-        while low <= high {
-            let mid = low + ((high - low) >> 1)
+        var high = nums.count
+        while low < high {
+            let mid = low + (high - low) / 2
             if nums[mid] <= n {
-                if mid == nums.count || nums[mid + 1] > n {
-                    return mid
-                }
+                if mid == nums.count || nums[mid + 1] > n { return mid }
                 low = mid + 1
             } else {
-                high = mid - 1
+                high = mid
             }
         }
         return -1

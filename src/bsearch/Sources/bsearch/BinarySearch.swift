@@ -4,7 +4,7 @@ class BinarySearch {
         var low = 0
         var high = nums.count - 1
         while low <= high {
-            let mid = low + (high - low) / 2
+            let mid = low + ((high - low) >> 1)
             if nums[mid] == n {
                 return mid
             } else if nums[mid] < n {
