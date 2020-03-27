@@ -1,5 +1,5 @@
 extension Sort {
-    func bubbleSort<T: Comparable>(_ array: [T]) -> [T] {
+    func bubbleSort(_ array: [T]) -> [T] {
         var array = array
         if array.count <= 1 { return array }
         for i in 0..<array.count {

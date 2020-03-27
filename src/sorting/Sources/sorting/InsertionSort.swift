@@ -1,5 +1,5 @@
 extension Sort {
-    public func insertionSort<T: Comparable>(_ array: [T]) -> [T] {
+    public func insertionSort(_ array: [T]) -> [T] {
         if array.count <= 1 { return array }
         var array = array
         for i in 1..<array.count {

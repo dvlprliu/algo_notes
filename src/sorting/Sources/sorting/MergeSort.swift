@@ -1,5 +1,5 @@
 extension Sort {
-    public func mergeSort<T: Comparable>(_ array: [T]) -> [T] {
+    public func mergeSort(_ array: [T]) -> [T] {
         if array.count <= 1 { return array }
         let mid = array.count / 2
         let left = mergeSort(Array(array[0..<mid]))
@@ -7,32 +7,34 @@ extension Sort {
         return merge(left, right)
     }
 
-    private func merge<T: Comparable>(_ left: [T], _ right: [T]) -> [T] {
-        var leftIndex = 0
-        var rightIndex = 0
+    private func merge(_ left: [T], _ right: [T]) -> [T] {
+        var leftIdx = 0
+        var rightIdx = 0
         var result = [T]()
-        while leftIndex < left.count, rightIndex < right.count {
-            if left[leftIndex] < right[rightIndex] {
-                result.append(left[leftIndex])
-                leftIndex += 1
-            } else if left[leftIndex] > right[rightIndex] {
-                result.append(right[rightIndex])
-                rightIndex += 1
+        func appendLeft(_ idx: inout Int) {
+            result.append(left[idx])
+            idx += 1
+        }
+        func appendRight(_ idx: inout Int) {
+            result.append(right[idx])
+            idx += 1
+        }
+        while leftIdx < left.count, rightIdx < right.count {
+            if left[leftIdx] < right[rightIdx] {
+                appendLeft(&leftIdx)
+            } else if left[leftIdx] > right[rightIdx] {
+                appendRight(&rightIdx)
             } else {
-                result.append(left[leftIndex])
-                leftIndex += 1
-                result.append(right[rightIndex])
-                rightIndex += 1
+                appendLeft(&leftIdx)
+                appendRight(&rightIdx)
             }
         }
 
-        while leftIndex < left.count {
-            result.append(left[leftIndex])
-            leftIndex += 1
+        while rightIdx < right.count {
+            appendRight(&rightIdx)
         }
-        while rightIndex < right.count {
-            result.append(right[rightIndex])
-            rightIndex += 1
+        while leftIdx < left.count {
+            appendLeft(&leftIdx)
         }
         return result
     }

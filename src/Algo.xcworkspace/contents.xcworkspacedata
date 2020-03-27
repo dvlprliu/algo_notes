@@ -2,6 +2,9 @@
 <Workspace
    version = "1.0">
    <FileRef
+      location = "group:stack/stack.xcodeproj">
+   </FileRef>
+   <FileRef
       location = "group:skiplist/skiplist.xcodeproj">
    </FileRef>
    <FileRef

@@ -4,19 +4,19 @@ import XCTest
 
 final class sortingTests: XCTestCase {
     func testBubbleSort() {
-        sortingTest(Sort().bubbleSort)
+        sortingTest(Sort<Int>().bubbleSort)
     }
 
     func testInsertionSort() {
-        sortingTest(Sort().insertionSort)
+        sortingTest(Sort<Int>().insertionSort)
     }
 
     func testSelectionSort() {
-        sortingTest(Sort().selectionSort)
+        sortingTest(Sort<Int>().selectionSort)
     }
 
     func testMergeSort() {
-        sortingTest(Sort().mergeSort)
+        sortingTest(Sort<Int>().mergeSort)
     }
 
     func testQuickSort() {
