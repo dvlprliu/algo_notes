@@ -157,12 +157,26 @@ final class SolutionTests: XCTestCase {
     }
 
     func testFindPeakElement() {
+        let solution = Solution()
         let cases = [
             ([1,2,3,1], Set([2])),
-            ([1,2,1,3,5,6,4], Set([1, 5]))
+            ([1,2,1,3,5,6,4], Set([1, 5])),
+            ([2,3,5,3,1,2,4,4,3,2,2,5,6], Set([2,12]))
         ]
-        let solution = Solution()
+        let methods = [
+            solution.findPeakElement,
+            solution.findPeakElement_linearSearch
+        ]
         var count = 0
+
+        cases.enumerated().forEach { (idx, case) in
+            methods.enumerated().forEach { (j, method) in
+                let (nums, ans) = `case`
+                let result = method(nums)
+                XCTAssertTrue(ans.contains(result), "#\(count): result (\(result)) is not containd correct, should be one of \(ans)")
+            }
+        }
+
         cases.forEach { (case) in
             count += 1
             let (nums, ans) = `case`

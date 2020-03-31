@@ -29,6 +29,9 @@
 import Foundation
 
 extension Solution {
+    // # 二分查找
+    // 数组中存在n各单调递增的区间，找到单调递增区间的最大值，如果该值大于后一个元素
+    // 则该值就是我们要找的元素
     func findPeakElement(_ nums: [Int]) -> Int {
         var low = 0
         var high = nums.count - 1
@@ -42,12 +45,18 @@ extension Solution {
         }
         return low
     }
+
+    // # 线性搜索
+    // 从头到尾遍历所有元素，如果该元素大于左右相邻的元素，就返回。
+    // 小trick，在数组首位各添加了 Int.min，方便处理第一个元素和最后一个元素
+    func findPeakElement_linearSearch(_ nums: [Int]) -> Int {
+        let nums = [Int.min] + nums + [Int.min]
+        for i in 1 ..< nums.count - 1 {
+            let num = nums[i]
+            if num > nums[i - 1] && num > nums[i + 1] {
+                return i - 1
+            }
+        }
+        return -1
+    }
 }
-
-// # 线性搜索
-// 从头到尾遍历所有元素，如果该元素大于左右相邻的元素，就返回。
-// 小trick，在数组首位各添加了 Int.min，方便处理第一个元素和最后一个元素
-
-// # 二分查找
-// 数组中存在n各单调递增的区间，找到单调递增区间的最大值，如果该值大于后边
-// 则该值就是我们要找的元素
