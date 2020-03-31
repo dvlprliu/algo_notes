@@ -146,7 +146,8 @@ final class SolutionTests: XCTestCase {
             ([1,3,5], 1),
             ([2,2,2,0,1], 0),
             ([3,3,1,3], 1),
-            ([1,3,3], 1)
+            ([1,3,3], 1),
+            ([2,2,2,2,2,2,2,2], 2)
         ]
         let solution = Solution()
         cases.forEach { (case) in
