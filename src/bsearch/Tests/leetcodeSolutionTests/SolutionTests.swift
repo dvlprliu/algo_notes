@@ -131,7 +131,8 @@ final class SolutionTests: XCTestCase {
     func testFindMinI() {
         let cases: [([Int], Int)] = [
             ([3,4,5,1,2], 1),
-            ([4,5,6,7,0,1,2], 0)
+            ([4,5,6,7,0,1,2], 0),
+            ([3,1,2], 1)
         ]
         let solution = Solution()
         cases.forEach { (case) in

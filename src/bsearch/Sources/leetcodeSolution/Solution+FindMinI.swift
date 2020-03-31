@@ -21,6 +21,7 @@
 // 输入: [4,5,6,7,0,1,2]
 // 输出: 0
 //
+// https://leetcode-cn.com/problems/find-minimum-in-rotated-sorted-array/
 import Foundation
 
 extension Solution {
@@ -29,12 +30,10 @@ extension Solution {
         var high = nums.count - 1
         while low < high {
             let mid = low + (high - low) / 2
-            // nums[mid] > nums[high] 说明转轴在mid右边，将搜索范围
-            // 缩小到 [mid + 1, high)
             if nums[mid] > nums[high] {
                 low = mid + 1
             } else {
-                high = low
+                high = mid
             }
         }
         return nums[low]
