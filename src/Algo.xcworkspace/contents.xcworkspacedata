@@ -2,6 +2,12 @@
 <Workspace
    version = "1.0">
    <FileRef
+      location = "group:linked-list/linked-list.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:binary-tree/binary-tree.xcodeproj">
+   </FileRef>
+   <FileRef
       location = "group:stack/stack.xcodeproj">
    </FileRef>
    <FileRef
