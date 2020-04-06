@@ -28,7 +28,7 @@ import Foundation
 extension Solution {
     func maxDepth_recursive(_ root: TreeNode?) -> Int {
         guard let root = root else { return 0 }
-        return max(maxDepth_recursive(root.left) + 1, maxDepth_recursive(root.right) + 1)
+        return max(maxDepth_recursive(root.left), maxDepth_recursive(root.right)) + 1
     }
 
     func maxDepth_iterate(_ root: TreeNode?) -> Int {

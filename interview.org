@@ -1,0 +1,1469 @@
+#+TITLE: 面试题整理
+* iOS系统相关
+** iOS图片内存分析
+   [[https://juejin.im/post/5b1a7c2c5188257d5a30c820][WWDC2018 图像最佳实践 - 掘金]] 
+   [[https://developer.apple.com/videos/play/wwdc2018/219/][Image and Graphics Best Practices - WWDC 2018 - Videos - Apple Developer]] 
+** 网络优化                                                        :优化:
+   [[https://www.jianshu.com/p/a470ab485e39][iOS网络深度优化总结 - 简书]] 
+** NSTimer
+*** 的实现原理
+    [[https://www.jianshu.com/p/179603ffb194][从RunLoop源码探索NSTimer的实现原理 - 简书]]
+*** 如何解决Timer循环引用
+    * 使用NSProxy
+** 内存优化                                                            :优化:
+   [[https://juejin.im/post/5b23dafee51d4558e03cbf4f][WWDC 2018：iOS 内存深入研究 - 掘金]] 
+   [[http://colin1994.github.io/2019/12/27/iOS-Memory-Debug/?utm_source=tuicool&utm_medium=referral][iOS 内存调试技巧 · Colin's Nest]] 
+   [[https://developer.apple.com/videos/play/wwdc2015/413/][Advanced Debugging and the Address Sanitizer - WWDC 2015 - Videos - Apple Dev...]] 
+** 电量优化                                                            :优化:
+   [[https://juejin.im/post/5bc99a7d6fb9a05ce1728688][iOS性能优化之耗电量 - 掘金]] 
+*** 基本概念
+    耗电的主要状态包括：
+    1. idle状态，说明app处于休眠状态，几乎不使用电量
+    2. Active状态说明app处于前台工作状态，用电量比较高。
+    3. Overhead状态指的是调起硬件来支持app功能所消耗的电量。
+**** 耗电因素
+     电量消耗主要来自于这几个方面
+     * CPU，电量的主要消耗方
+     * Device wake 设被唤醒
+     * Netword 网络
+     * Graphics animations, and video
+     * Location 更新位置
+     * Motion
+     * Bluetooth
+**** 固定消耗和动态消耗
+     当App执行某项任务的时候，会增加动态消耗。当App调起系统以及各种资源的时候，
+     会增加固定消耗，当任务执行完成，消耗就会减少。如果app有很多零散的任务，导致
+     系统无法真正进入idle状态，就会白白浪费电量。
+*** CPU使用的优化策略
+**** 减少后台的工作
+     当用户将app放入后台，系统会将App调整为后台状态。而且一段时间以后，如果app没
+     有执行很重要的任务系统会将app挂起。
+     #+begin_quote
+     App不能登台系统进行挂起操作，而应该在后台任务完成之后主动通知系统。否则会消
+     耗大量电量。
+     #+end_quote
+     
+***** 后台操作主要耗电的原因
+      * 后台任务完成之后不通知系统
+      * 播放静音的音频
+      * 一直更新定位
+      * 与蓝牙设置交互
+      * 下载资源
+        
+***** 当app不活跃或者放入后台之后，将app挂起
+      在AppDelegate中实现代理方来接收系统通知
+
+****** applicationWillResignActive
+       该方法在有来电或者消息，或者用户开始切换到别的app调用。可以在这个方法里为
+       app进入后台状态作准备。
+
+****** applicationDidEnterBackground
+       一旦app进入后台状态，该方法即被调用。在这个方法里马上将操作，动画，UI
+       更新停止。
+
+       该方法只有几秒钟的执行时间。如果用户创建的操作需要更多的时间来完成，那么可
+       以申请更多的后台时间，最多几分钟。通过调用
+       ~beginBackgroundTaskWithExpirationHandler~ 方法来实现。然后将没有完成的工
+       作放在dispatch queue中，或者另外的线程里去完成。
+      
+       如果任务执行完成了，调用 ~endBackgroundTask:~ 方法来通知系统任务完成。否则
+       当执行时间用尽，“完成回调”会被调用，这是最后的机会处理未完成的任务。然后
+       app就被挂起。
+
+***** App恢复响应之后恢复用户操作
+      实现AppDelegate方法来接收系统通知
+      
+****** applicationWillEnterForeground
+       app恢复响应之后会调用该方法，在这个方法执行恢复操作。
+
+***** 解决后台执行的崩溃
+      iOS系统有一个CPU监控器，用来监控后台app是否会对CPU过量使用。如果超过了界限，
+      系统就会将app杀死。如果app因为这种原因在后台被杀死，会在日志中找到一个
+      ~EXC_RESOURCE~ 异常类型，以及 ~CPU_FATAL~ 子类型。同时会有异常信息以及调用
+      栈。
+      
+**** 使用QOS处理工作优先级
+***** 关于QoS
+***** 选择QoS
+***** 特殊的QoS
+***** 为Operration和Queue指定QoS
+***** 为Dispatch Queues和blocks指定QoS
+***** 为了Thread指定QoS
+***** 关于CloudKit和QoS
+**** 减少Timer的使用
+***** Timer的高消耗
+      timer可以用来执行延迟或者周期性的任务，
+***** 使用系统通知而非Timer
+***** 使用CGD来处理同步操作，而非Timer
+***** 如果必须使用Timer，请高效利用
+****** 指定合适的超时时间
+****** 停止不再使用的重复Timer
+****** 为Timer设置公差
+**** 减少I/O
+     每次执行I/O相关任务的时候，它都会使系统脱离空闲状态。可以通过减少数据写入，
+     聚合在一起写入，明智地使用缓存，调度网络事务以及最小化总体I/O，来提升app的
+     能源效率和性能。
+**** 在iPhone上与低电量模式相配合
+     用户可以同时开启低电量模式来延长电池的寿命，低电量开启之后，iOS系统会采取各
+     种措施来减少电量的消耗。比如：
+     * 降低CPU和GPU的性能
+     * 暂停后台活动
+     * 降低屏幕亮度
+     * 减少自动锁定的时间
+     * 禁用邮件拉取
+     * 禁用motion effect
+     * 禁用动态壁纸
+
+     低电量状态会在电池的电量达到某个状态后自动禁用
+
+     App可以低电量模式启用的时候采取一些措施帮助app节省电量。比如禁用动画，停用
+     定位，降低帧率，禁用同步和备份等等。
+
+     如何知道iOS开启了低电量模式？
+***** 注册系统通知
+      当电量模式发生改变的时候，系统会通过NSNotificationCenter发送通知。这些通知
+      是在global queue里发送的。
+
+      可以使用注册NotificationCenter的
+      ~NSProcessInfoPowerStateDidChangeNotification~ 获得电量模式的变更。
+
+      当app被通知电量模式变更了，可以通过 ~isLowPowerModeEnabled~ 来确定是否启用
+      了低电量模式。
+***** 确定电量模式
+      在任何时间都可以通过 NSProcessInfo 的 isLowPowerModeEnabled 属性来确定是否
+      开启了低电量模式。
+*** 网络优化策略
+**** 电量和网络
+***** 影响电量的因素
+      * 蜂窝网络要比Wi-Fi更耗电
+      * 弱网环境，导致网络事务处理时间增常，会导致消耗更多电量。
+      * 网络带宽低导致处理事务时间增长，消耗更多电量。
+      * 甚至所处的地理位置和选的服务提供商都会对电量使用产生影响。
+**** 减少网络使用
+     每个app都不可避免的需要使用网络，但是可以使用一些策略来减小对网络的使用，以
+     达到省电的目的。
+***** 减小数据包
+      网络传输应该尽可能地小。
+****** 减小传输媒体文件的质量或尺寸
+       如果app内有上传，下载，直播多媒体内容，低质量小尺寸的媒体文件可以减少传输
+       接收的数据。可以让用户选择媒体质量。
+****** 压缩数据
+       使用压缩算法来减小数据。
+***** 避免重复传输
+      app不应该重复下载相同的数据
+****** 缓存数据
+       不常更新的数据可以使用缓存在本地进行存储，只有当数据有修改，或者用户主动
+       出发的时候才去请求网络。可以使用NSURLCache和NSURLSession来实现内存和磁盘
+       缓存。
+****** 使用可暂停可恢复机制
+       由于网络情况的波动，网络可能经常断开。实现例如断点续传的机制，来避免重复
+       下载同样的内容。
+***** 处理错误
+      网络不可用的时候不要进行网络请求
+****** 检查网络状态
+       如果网络请求失败了，使用 ~SCNetworkReachability~ API检查网络是否可用。如
+       果信号有问题，给用户提示，或者推迟网络请求。
+****** 提供退出路径
+       给用户提供一个可以退出的路径，让用户可以取消掉没有响应的请求，同时为诶请
+       求设置合适的超时时长。
+****** 优化重试
+       如果由于网络原因请求失败了，那么可以待网络恢复的时候自动重试。
+**** 推迟网络请求
+***** 批量事务
+      不要一次处理一点，最好一批一批的处理
+      * 如果App可以串流视频，可以一次下载整个文件，或者一次下载一大部分。而不要
+        一次下载一点儿。
+      * 如果app内有广告，一次多下载几个使用一段时间，而不是需要的时候下载。（在
+        wifi环境下预加载）
+      * 如果app需要从服务端下载邮件，一次多下载一些。就当用户要一次读完，而不是
+        当用户选中的时候才进行下载。
+***** 将可推迟的网络操作推迟
+      在NSURLSession的API中，为通过HTTP上传和下载的任务提供了了创建 deferable
+      background session的功能。这种后台session可以让你的app将请求先发给系统，然
+      后系统在合适的时机出发网络请求，请求完成之后会通知app。这么做有几点优势：
+      * 网络活动是在进程外执行的。因为网络操作的执行交给了系统，可以让用户继续干
+        别的事情而不必等待网络。
+      * App可以接收到通知。如果网络活动完成或者发生了错误，app可以接收到通知。
+      * 网络活动被高效执行。由于系统有带宽监控，如果网络过慢，系统便将网络活动延
+        迟执行。
+****** 创建background session option
+       首先创建一个NSURLSessionConfiguration对象，设置identifier，并将它设置为
+       discretionary的。
+       #+BEGIN_SRC swift
+         let configuration = NSURLSessionConfiguration.backgroundSessionConfigurationWithIdentifier("com.app.id")
+         configuration.discretionary = true
+       #+END_SRC
+       设置 ~discretionary~ 主要是为了告诉系统，这个请求不需要马上触发，有系统决
+       定何时触发。
+****** 将后台会话限制为仅wifi状态下触发
+       可以使用 configuration的 ~allowsCellularAccess~ 的属性将会话限制为仅wifi
+       情况下触发。
+       #+BEGIN_SRC swift
+         configuration.allowsCellularAccess = false
+       #+END_SRC
+****** 调整后台会话的调度公差
+       默认情况下，系统最多允许一个后台会话退出最多7天执行。可以通过
+       configuration的 ~timeoutIntervalForResources~ 属性来进行调整。
+       #+BEGIN_SRC swift
+         // 18小时内执行
+         configuration.timeoutIntervalForResource(18 * 60 * 60)
+       #+END_SRC
+****** 创建后台会话对象
+       创建好configuration对象之后，就可以创建session对象了。
+       #+BEGIN_SRC swift
+         let backgroudSession = NSURLSession(configuration: configuration, delegate: self, delegateQueue: nil)
+       #+END_SRC
+****** 为后台会话添加url请求
+       #+BEGIN_SRC swift
+         let urlToDownload = URL(string: "<URL>")!
+         let downloadReq = URLRequest(url: urlToDownload)
+         let downloadTask = backgroundSession.downloadTask(with: downloadReq)
+
+         downloadTask.resume()
+       #+END_SRC
+****** 获得后台会话的通知
+
+**** VoIP最佳实践
+     
+** 启动优化                                                            :优化:
+   [[https://juejin.im/post/5e701ed5e51d4526e91f6916][iOS基于二进制重排的启动优化 - 掘金]] 
+   [[http://yulingtianxia.com/blog/2016/10/30/Optimizing-App-Startup-Time/][优化 App 的启动时间 | yulingtianxia's blog]]  
+   [[https://juejin.im/post/5d8776b0e51d4561af16dddf][iOS启动速度优化之道 - 掘金]] 
+   [[https://tech.meituan.com/2018/12/06/waimai-ios-optimizing-startup.html][美团外卖iOS App冷启动治理 - 美团技术团队]] 
+** 计时相关
+*** 造成NSTimer可能不准确的原因
+**** NSTimer和Runloop
+     与把创建的Timer添加到runloop的哪个mode有关，如果时候schedulu*系列的方法创建
+     Timer，系统会默认将timer添加到runloop的default mode中。这种情况下，runloop的
+     mode切换到了UITraikingRunloopMode，timer将不再被调度，便造成了不准确。
+     如果使用init*系列的方法，则需要自己手动将timer加入到runloop中，这时，我们将
+     timer加入到runloop的commonmode中就好了。
+     还有一个影响NSTimer精确度的因素，torrence属性，如果对Timer的准确性要求本来就
+     不是很高，可以使用tolerance属性为NSTimer设置一个公差。设计tolerance的目的在
+     于供系统优化耗电，提高系统响应。调度timer的时间为firedata + tolerance，对于
+     重复的timer来说，每次重复调度的时刻都是忽略掉tolerance的。tolerance默认值为
+     0，但是系统依然可能会为每个timer设置一个tolerance。
+     苹果官方推荐将tolerance的值设置为interval的10%。为timer设置一个tolerrance可
+     以极大减少电量消耗。
+*** CADisplayLink
+    CADisplayLink是一个和屏幕刷新率同步的定时器类。CADisplayLink以特定模式注册到
+    runloop后，每当屏幕显示内容刷新结束的时候，runloop就会向CADisplayLink指定的
+    target发送一次指定的selector消息，CADisplayLink类对应的selector就会被调用一
+    次，所以可以使用CADisplayLink做一些和屏幕操作相关的操作。
+*** DispatchSourceTimer 
+** TableView滚动优化
+   [[iOS渲染流程]]
+   [[https://blog.ibireme.com/2015/11/12/smooth_user_interfaces_for_ios/][iOS 保持界面流畅的技巧 | Garan no dou]] 
+   [[https://github.com/johnil/VVeboTableViewDemo][GitHub - johnil/VVeboTableViewDemo: VVebo剥离的TableView绘制]] 
+*** Cell复用
+*** Cell高度预计算/缓存
+*** 圆角
+*** 阴影
+*** 避免离屏渲染
+*** TODO ASDK的优化机制
+** 多线程
+   [[https://www.uraimo.com/2017/05/07/all-about-concurrency-in-swift-1-the-present/][All about Concurrency in Swift - Part 1: The Present - uraimo.com]] 
+   [[https://www.uraimo.com/2017/07/22/all-about-concurrency-in-swift-2-the-future/][All about Concurrency in Swift - Part 2: The Future - uraimo.com]] 
+*** 锁
+**** 是什么
+     是保证线程安全常见的同步工具。锁是一种非强制的机制，每一个线程在访问数据或
+     者资源前，要先获取(Acquire) 锁，并在访问结束之后释放(Release)锁。如果锁已经
+     被占用，其它试图获取锁的线程会等待，直到锁重新可用。
+**** 为什么要用锁
+     锁是保证线程安全的工具
+**** atomic
+     被atomic修饰关键字表明该属性是“原子”的，但并不表明该元素是线程安全的。
+**** 自旋锁
+     线程等待时一直轮训处于忙等状态，消耗CPU资源，但是在互斥临界区计算量较小的场
+     景下，它的效率远高于其它的锁，因为它一直处于running状态，减少了上下文切换的
+     消耗。
+**** 什么是优先级反转
+     在该种状态下，一个高优先级任务间接被一个低优先级任务所抢先(preemtped)，使得
+     两个任务的相对优先级被倒置。
+*** 线程和进程的区别
+    进程是运行中的程序， 线程是进程中的一个执行序列
+    进程是资源分配的单元，线程是执行单元
+    进程切换代价大，线程切换代价小
+    进程拥有资源多，线程拥有资源少
+    多个线程共享进程资源
+
+**** 线程的定义
+     - 线程是进程的基本执行单元，一个进程的所有任务都在线程中执行
+     - 进程要想执行任务，必须得有线程，进程至少要有一条线程
+     - 程序启动会默认开启一条线程，这条线程被称为主线程或 UI 线程
+**** 进程的定义
+     - 进程是指在系统中正在运行的一个应用程序
+     - 每个进程之间是独立的，每个进程均运行在其专用的且受保护的内存空间内
+     - 地址空间：同一进程的线程共享本进程的地址空间，而进程之间则是独立的地址空
+       间。
+     - 资源拥有：同一进程内的线程共享本进程的资源如内存、I/O、cpu等，但是进程之
+       间的资源是独立的。
+     - 一个进程崩溃后，在保护模式下不会对其他进程产生影响，但是一个线程崩溃整个
+       进程都死掉。所以多进程要比多线程健壮。
+     - 进程切换时，消耗的资源大，效率高。所以涉及到频繁的切换时，使用线程要好于
+       进程。同样如果要求同时进行并且又要共享某些变量的并发操作，只能用线程不能
+       用进程。
+     - 执行过程：每个独立的进程有一个程序运行的入口、顺序执行序列和程序入口。但
+       是线程不能独立执行，必须依存在应用程序中，由应用程序提供多个线程执行控制。
+     - 线程是处理器调度的基本单位，但是进程不是。
+*** 线程保活
+** 响应链
+   [[https://juejin.im/post/5d396ef7518825453b605afa][深入理解 iOS 事件机制 - 掘金]] 
+   [[http://zhoon.github.io/ios/2015/04/12/ios-event.html][深入浅出iOS事件机制]] 
+*** 如何通过View查找它所在的ViewContronller
+    考察响应链
+    #+BEGIN_SRC swift 
+      extension UIView {
+          var viewController: UIViewController? {
+              var responder = self
+              while responder {
+                  if let viewController = responder as? UIViewController {
+                      return viewController
+                  }
+                  responder = responder.next
+              }
+              return nil
+          }
+      }
+    #+END_SRC
+
+*** 如何扩大View的相应范围
+    考察点击事件处理流程
+    用户点击屏幕 -> UIApplication -> UIWindow.hitTest:withEvent: ->
+    View.hitTest:withEvent. hitTest方法调用pointInside:withEvent:方法来确定那个
+    子视图应该响应事件。
+ 
+*** 修改响应链
+    可以通过重写next属性修改响应链。UIKit中next的实现
+    * UIView， 如果这个view是ViewController的根视图，那么他的next是
+      ViewController，其他情况下，next为superview
+    * UIViewController，
+      * 如果ViewController的view是window的根视图，那么他的next是
+        就是window。
+      * 如果ViewCoontroller是被弹出的，那么他的next就是弹出他的ViewController
+    * UIWindow 他的next为UIApplication
+    * UIAppliation 的next为app delegate, 且app delegate必须是UIResponder的实例，
+      不能是View，ViewController或者AppObject。
+*** 事件响应和事件传递
+    传递顺序: UIApplicationDelegate -> UIApplication -> UIWindow ->
+    RootViewController -> view -> subviews
+
+    响应顺序: subviews -> view -> RootViewController -> UIWindow -> UIApplication
+    -> UIApplicationDelegate
+** TODO ViewController的生命周期
+** 进程间通信
+*** URLScheme
+*** Keychain
+*** UIPastboard
+*** UIDocumentInteractionController
+*** local socket
+*** UIActivityViewController
+*** App Groups
+** TODO iOS渲染流程
+   [[https://juejin.im/post/5d91c4fef265da5b6006de08][iOS - 渲染原理 - 掘金]] 
+   [[https://zhuanlan.zhihu.com/p/72653360][关于iOS离屏渲染的深入研究 - 知乎]] 
+*** 什么是离屏渲染
+*** 卡顿的产生
+    完成现实信息的过程：CPU计算 -> GPU渲染 -> 渲染结果存入帧缓冲区 -> 视频控制器
+    会按照Vsync信号逐帧读取缓冲区的数据 -> 成像。如果屏幕已经发送了vsync信号，但
+    是GPU还没有渲染完成，就会发生卡顿，然后就只能等待下一个周期去渲染。
+*** 卡顿优化
+    在vsync到来之前，尽可能减少这一帧对 GPU 和 CPU 资源的消耗。那么我们必须了解
+    两者在渲染过程中具体分工是什么，以及iOS视图产生的过程。
+*** UIView和CALayer
+    UIView创建并管理CALayer，以保证视图树和图层树在结构上的一致性。iOS之所以要基
+    于 UIView和CALayer 提供两个平行的图层关系主要原因在于指责分离。
+*** CALayer
+    CALayer等同于一个纹理，纹理是GPU渲染绘制的重要依据，纹理本质上是一张图片，因
+    此CALayer有一个contents属性指向一块儿缓冲区，可以存放位图。在实际开发中，绘
+    制界面有两种方式：一种是 手动绘制 ； 另一种是 使用图片。 
+    * 手动绘制：custom drawing
+    * 使用图片： contennts image
+*** contents
+    设置contents属性
+*** costom drawing
+    Custom drawing是指直接使用Core graphic直接绘制寄宿图。一般通过重写UIView的
+    drawRect方法来实现。
+    CPU的工作流程
+    1. UIView关联了一个CALayer
+    2. CALayer有一个可选的delegate属性，实现的CALayerDelegate协议，UIView实现了
+       该协议。
+    3. 当需要重绘时，CALayer会请求其代理提供一个寄宿图进行显示。
+    4. CALayer首先尝试调用 -displayLayer: 方法，此时代理可以直接设置 contents 属
+       性。
+    5. 如果代理没有实现 displayLayer 方法， CALayer就会尝试调用
+       -drawLayer:inContext: 方法。在调用该方法前，CALayer会创建一个空的寄宿图，
+       和一个Core Graphics 的绘制上下文， 为绘制寄宿图作准备，作为ctx的参数传
+       入。
+    6. 最后，由 Core Graphics绘制生成的寄宿图会存入backing store。如果UIView的子
+       类重写了drawRect： 则UIView执行完drawRect： 之后，系统会为layer的contents
+       开辟一块缓存，用来存放drawRect绘制的内容。即使drawRect方法啥也没做也会开
+       辟缓存，造成消耗。
+    7. 当在操作UI时，比如改变了Frame，更新了UIView/CALayer的层次是，或者手动调用
+       setNeedsLayout/setNeedsDispaly方法后，再次过程中 app 可能需要更新视图树和
+       图层树。
+    8. CPU计算要显示的内容，包括布局计算，视图绘制，图片解码，当runloop在
+       BeforeWaiting（即将进入休眠），和Exit（即将退出runloop）时，会通知注册的
+       监听，然后对图层进行打包，打包完成后，将打包数据发送给一个独立的渲染进程
+       Render server
+    9. 数据到达Render Server后会被反序列化，得到图层树，按照图层树中的图层顺序、
+       rgba值、图层frame过滤图中被遮挡的部分，过哦率后将图层转成渲染树，然后将渲
+       染信息叫个OpenGL ES / Metal 进行渲染。
+       
+       GPU的工作流程
+** anchor points
+** TODO Bitcode
+   bitcode是编译后程序的中间表现，包含Bitcode的app上传到App Store Connect之后，
+   会在AppStore上被重新编译和链接。包含bitcode的app可以在不提交新版本app的情况下，
+   被AppStore重新优化。
+* 调试相关
+** Address Santitizer的原理和使用
+   [[https://easeapi.com/blog/blog/84-address-sanitizer.html][Address Sanitizer的原理和使用 - 大伟不是戴维]] 
+*** 原理
+    启用Address Sanitizer后，会在App中增加libclang_rt.asan_ios_dynamic.dylib，它
+    将在运行时加载。
+
+    Address Santitizer替换了malloc和free的实现。当调用malloc函数时，它将分配指定
+    大小的内存A，并将内存A周围区域标记为“off-limits”。当free方法被调用时，内存A
+    也被标记为“off-limits",同时内存A被添加到隔离队列，这个操作将导致内存A无法在
+    被重新malloc。代码中所有的内存访问操作都被编译器转换为了如下形式：
+    #+BEGIN_SRC c
+      // before
+      ,*adreess = ....;
+
+      // After
+      if (isMarkedAsOffLimits(address)) {
+        ReportError(address);
+      }
+      ,*address = ...;
+    #+END_SRC
+    当被访问到的被标记为“off-limits”的内存时，Address sanitizer就会报告异常。
+*** Address Sanitizer能做什么
+    可以用来检测内存错误：
+    * 内存释放后又被使用
+    * 内存重复释放
+    * 释放未申请的内存
+    * 使用栈内存作为函数返回值
+    * 使用了超出作作用域的栈内存
+    * 内存越界访问
+*** 使用限制
+    降低执行效率2-5倍，内存使用增加2-3倍。
+*** 与ZombieObjects做对比
+    Zombie Object也是内存检测工具。开启了Zombie之后，dealloc会被hook，被hook后执
+    行dealloc，内存并不会真正释放，系统会修改对象的isa指针，指向_NSZombine_前缀
+    名称的僵尸类，将该对象变为僵尸对象。
+
+    僵尸类做的事情比较单一，就是响应所有方法：抛出异常，打印一条包含消息内容及其
+    接受者的消息，然后终止程序。
+
+    由此可讲，Zombie Object是无法检查内存越界的，Address Sanitizer比Zombine有更
+    强大的捕捉内存问题的能力。
+** Thread Sanitizer的原理和使用
+   [[https://easeapi.com/blog/blog/85-thread-sanitizer.html][Thread Sanitizer的原理和使用 - 大伟不是戴维]] 
+   它是基于LLVM的使用与Swift和C语言的检测数据竞争的工具。当多个线程在非同步情况
+   下访问同一内存并且至少有一个是写操作时，就会发生数据竞争。数据竞争是非常危险
+   的，可能导致程序的行为无法预测，甚至导致内存损坏。Thread Sanitizer还可以检测
+   其他类型线程错误，包括未初始化的互斥锁和线程泄漏。
+*** Thread Sanitizer的原理
+    Thread Sanitizer会记录有每一个内存访问的信息，并检测该访问是否参与了竞争。代
+    码中所有的内存访问都会被编译器转换为如下形式：
+    #+BEGIN_SRC c
+      // Before
+      ,*address = ...;  // or: ... = *address;
+      // After
+      RecordAndCheckWrite(address);
+      ,*address = ...;  // or: ... = *address;
+    #+END_SRC
+*** 对性能的影响
+    使执行效率降低2-20倍，内存使用增加5-10倍
+
+* 语言相关
+** Objective-C
+*** TODO catagory和extension的实现原理
+    [[http://www.cocoachina.com/articles/19163][Category VS Extension 原理详解]] 
+*** Runtime
+     [[https://juejin.im/post/5ac0a6116fb9a028de44d717][iOS Runtime详解 - 掘金]]
+**** isa指针
+     [[https://juejin.im/entry/5ce683d6518825685e02bd55][OC运行时机制Runtime(一)：从isa指针开始初步结识Runtime - iOS - 掘金]] 
+     isa指针，指向它所在类型的指针。一个类实例对应一个c结构体，有一个isa指针，指
+     向该实例对应的类对象。
+
+     每个类的实例对应一个结构体objc_object，每个类对应一个结构体objc_class.
+
+     每个实例通过isa指针向类对象里查找信息，类对象通过isa指针向元类中查找信息。
+     每个实例对象或者类对象根据super_class找他们的父类。
+
+     #+NAME: objc_class
+     #+BEGIN_SRC c
+       /// An opaque type that represents an Objective-C class.
+       typedef struct objc_class *Class;
+
+       /// Represents an instance of a class.
+       struct objc_object {
+         Class _Nonnull isa  OBJC_ISA_AVAILABILITY;
+       };
+
+       struct objc_class {
+         Class _Nonnull isa  OBJC_ISA_AVAILABILITY;
+       #if !__OBJC2__
+         Class _Nullable super_class                              OBJC2_UNAVAILABLE;
+         const char * _Nonnull name                               OBJC2_UNAVAILABLE;
+         long version                                             OBJC2_UNAVAILABLE;
+         long info                                                OBJC2_UNAVAILABLE;
+         long instance_size                                       OBJC2_UNAVAILABLE;
+         struct objc_ivar_list * _Nullable ivars                  OBJC2_UNAVAILABLE;
+         struct objc_method_list * _Nullable * _Nullable methodLists                    OBJC2_UNAVAILABLE;
+         struct objc_cache * _Nonnull cache                       OBJC2_UNAVAILABLE;
+         struct objc_protocol_list * _Nullable protocols          OBJC2_UNAVAILABLE;
+       #endif
+       } OBJC2_UNAVAILABLE;
+      #+END_SRC
+
+**** 消息机制
+     
+***** 消息机制 
+      当调用oc对象的一个方法，实际是向这个对象发送一个消息，例如 [receiver
+      message]实际上是调用了 objc_messageSend(receiver, selector, arg1...)方法。
+      消息功能为动态绑定做了很多必要的工作：
+      1. 通过selector在消息接收者的class里选择方法实现 method_imp
+      2. 调用方法实现，和参数一起传递给接收对象
+      3. 传递方法实现返回值
+
+      为了让编译器编译时，消息机制与类结构关联上，每个累结构里添加了两个基本元素
+      1. 指向父类的指针 isa
+      2. 类调度表，通过selector方法名在dispatch table里匹配对应的方法地址
+
+      当一个对对象被创建、分配内存时，他的实例里变量会初始化，里面有一个指向他的
+      类的结构体的指针，isa指针。
+
+      消息发送给一个对象的时候，通过class结构体里的isa指针在dispatch table里相应
+      的selector，如果没有找到就到父类里找，一直找到NSObject，一旦找到就调用该方
+      法，同时为了提高调用效率，会对调用过的方法进行缓存。如果都没有找到，就会启
+      用 动态方法决议
+
+***** 动态方法决议
+      我们可以通过 resolveInstanceMethod 和 resolveClassMethod 动态添加一个实例
+      方法或者类方法。可以通过class_addMethod将一个函数添加成一个类方法，而添加
+      的过程在 resolveInstanceMethod 方法中。
+
+      动态方法决议和消息转发是紧密相关的，动态方法决议发生在消息转发之前，如果一
+      个动态方法决议无法处理消息，便会进入消息转发的流程。
+
+***** 动态加载
+
+***** 消息转发
+      如果一个对象没有正确处理收到的消息，那么在抛出异常之前，runtime会向对象发
+      送一个NSInvocation对象作为参数的 forwardInvocation: 消息，NSInvocation对象
+      里包含和初始消息和参数。
+
+      我们可以使用forwardInvocation方法来处理消息转发。
+ 
+     [[https://www.jianshu.com/p/b34ecdcf8c25][OC运行时机制Runtime(二)：探索Runtime的消息转发机制 - 简书]]
+***** 调用机制
+      OC中，调用方法叫做发送消息，基本形式为 ~[receiver message]~ ; 编译器会将上
+      面这种发送消息转换为一个C函数调用。 objc_msgSend(receiver,
+      @selector(message))。这个方法会使用receiver的isa指针，找到对应的类对象，然
+      后在类对象的方法列表中通过selector找到对应的方法实现，如果找到了，会将这个
+      方法放到缓存中，以提升效率。如果没有找到，就去父类找，如果一直找到NSObject
+      都没有找到对应的方法。就会执行消息转发机制
+***** 消息转发
+      消息转发分为两大阶段，第一阶段尝试动态添加方法，叫做“动态方法解析”。如果第
+      一阶段没有成功，会执行第二阶段。第二阶段分为两步，第一步尝试将该消息发送给
+      备用接收者；如果没有，则将消息封装到NSInvocation对象中，完成消息转发的最后
+      一步。
+
+      这个方法的默认实现是调用 doNotRecogizeSelector: 方法。
+
+**** 关联对象
+     [[https://www.jianshu.com/p/be3f30aa4de5][OC运行时机制Runtime(三)：关联对象Associated Object和分类Category - 简书]]
+     
+***** category
+      通常使用分类来给已有的类添加方法。分类对应结构体结构如下
+      #+BEGIN_SRC c
+        struct objc_category {
+            char *category_name                                      OBJC2_UNAVAILABLE;
+            char *class_name                                         OBJC2_UNAVAILABLE;
+            struct objc_method_list *instance_methods                OBJC2_UNAVAILABLE;
+            struct objc_method_list *class_methods                   OBJC2_UNAVAILABLE;
+            struct objc_protocol_list *protocols                     OBJC2_UNAVAILABLE;
+        }  
+     #+END_SRC
+     包含分类名字，类名，实例方法列表，类方法列表，实现的协议列表。一般分类不能
+     直接添加属性，但可以使用运行时动态的给类添加属性。又叫关联对象。
+
+***** 关联对象
+      管理关联对象主要使用三个接口
+      * objc_setAssociatedObject(id object, const void *key, id value,
+        objc_AssociatedPolicy policy);
+      * objc_getAssociatedObject(id object, const void *key)
+      * objc_removeAssociatedObjects(id object)
+
+***** 管理逻辑
+      参与管理关联对象的参与者有：
+      * AssociationsManager
+      * AssociationsHashMap
+      * ObjectAssociationMap
+      * ObjectAssociation
+
+****** AssociationsManager
+       内部只有一个 AssociationsHashmap单例，使用自旋锁保证同时只有一个线程能够
+       访问AssociationsHashMap，保证线程安全。在初始化的时候加锁，析构的时候解锁。
+
+****** ObjectAssociation 关联对象的实际存储结构
+       * ObjectAssociation 关联对象的结构体，存储了关联对象的policy和value
+       * ObjectAssociationMap 存储了key和关联对象的映射
+
+***** 流程
+      1. 从AssociationMananger中，取得全局关联对象hash表AssociationHashMap
+      2. 根据关联对象所属类，从AssociationHashMap中取得这个类的关联对象哈希表
+      3. 根据key，从ObjectAssociationMap找到ObjectAssociation结构体，如果没有这
+         个结构体，则创建这个结构体。
+      4. 如果new_value为空，ObjectAssociationMap中会调用erase函数清楚这个key
+      5. 关联值和arc策略存储在ObjectAssociation中
+
+**** 方法替换
+     [[https://www.jianshu.com/p/ccc8bddfcb4a][OC运行时机制Runtime(四)：尝试使用黑魔法 Method Swizzling - 简书]] 
+*** Runloop
+    [[https://blog.ibireme.com/2015/05/18/runloop/][深入理解RunLoop | Garan no dou]] 
+    [[https://www.cnblogs.com/kenshincui/p/6823841.html][iOS刨根问底-深入理解RunLoop - KenshinCui - 博客园]]  
+    [[http://mrpeak.cn/blog/ios-runloop/][解密 Runloop]] 
+    [[https://bestswifter.com/runloop-and-thread/][深入研究 Runloop 与线程保活]] 
+    
+**** Runloop 概念
+     runloop实际上是一个对象，这个对象管理了其需要处理的事件和消息，并提供一个入
+     口函数来指向上面的事件循环的逻辑。线程执行了这个函数后，就会一直处于这个函
+     数内部，“接收消息-等待-处理-”的循环中，这道这个循环结束 （比如传入quit的消
+     息），函数返回。
+
+     OSX/iOS系统中提供了两个这样的对象：NSRunloop 和 CFRunLoopRef。CFRunloopRef
+     在CoreFoundation框架内，它提供了存C函数的API，这些API都是线程安全的。
+     NSRunLoop是对CFRunloopRef的封装，提供了面向对象的API，非线程安全。
+
+**** 与线程的关系
+     CFRunLoop是基于pthread来进行管理的。
+
+     苹果不允许直接创建Runloop，它只提供了两个自动获取的函数，CFRunloopGetMain()
+     和 CFRunloopGetCurrent()。
+     
+     线程和runloop之间是一一对应的，他们的关系保存在一个字典里。线程刚创建时并没
+     有Runloop，如果不主动获取，就一直不会有。runloop的创建发生在第一次获取时，
+     runloop的销毁发生在线程结束时。只能线程内部获取其runloop
+
+**** RunLoop的对外接口
+     在CF中与Runloop有关的有5个类
+     - CFRunLoopRef
+     - CFRunLoopModeRef
+     - CFRunLoopSourceRef
+     - CFRunLoopTimerRef
+     - CFRunLoopObserverRef
+
+     一个Runloop包含若干个Mode，每个mode包含若干个 source timer observer，每次调
+     用Runloop的主函数时，只能指定其中一个Mode，这个mode被称作当前mode，如果需要
+     切换mode，只能退出runloop，在重新指定一个mode进入。
+
+***** CFRunLoopSourceRef 
+      是事件产生的地方，Source有两个版本，Source0和Source1
+      
+****** Source0 
+       只包含了一个回调，只能由应用发起和处理。使用时需要调用
+       CFRunLoopSourceSignal(source)，将这个souorce标记为待处理，然后手动嗲用
+       CFRunloopWakeUp(runloop) 来唤醒runloop，让其处理这个事件
+
+****** Source1
+       包含了一个mach_port和一个回调，被用于通过内核和其他线程相互发送消息。这种
+       source 能主动唤醒runloop线程
+
+***** CFRunLoopTimerRef
+      基于时间的触发器，包含一个时长和回调，当其加入到RunLoop时，RunLoop会注册对
+      应的时间点，当时间点到时，RunLoop会被唤醒执行那个回调
+
+***** CFRunLoopObserverRef
+      观察者，每个Observer都包含了一个回调，当RunLoop的状态发生变化时，观察者就
+      能通过回调接受这个变化。
+
+   Source / Timer / Observer 被统称为Mode Item，一个Item可以同时加入多个mode，但
+   是一个item被重复加入一个mode时是不会有效果的。如果mode中一个item都没有，则
+   Runloop会直接退出，不进入循环。
+
+**** Runloop的mode
+     CFRunLoopMode 和 CFRunLoop 结构：
+     #+BEGIN_SRC c++
+       struct __CFRunLoopMode {
+         CFStringRef _name;            // Mode Name, 例如 @"kCFRunLoopDefaultMode"
+         CFMutableSetRef _sources0;    // Set
+         CFMutableSetRef _sources1;    // Set
+         CFMutableArrayRef _observers; // Array
+         CFMutableArrayRef _timers;    // Array
+         ...
+       };
+ 
+       struct __CFRunLoop {
+         CFMutableSetRef _commonModes;     // Set
+         CFMutableSetRef _commonModeItems; // Set<Source/Observer/Timer>
+         CFRunLoopModeRef _currentMode;    // Current Runloop Mode
+         CFMutableSetRef _modes;           // Set
+         ...
+       };
+     #+END_SRC
+     CommonModes: 一个mode可以将自己标记为 Common属性，每当runloop的内容发生变化
+     时，Runloop都会自动将 _commonModelItems里的 Source/Observer/Timer 同步到具
+     有 common标记的所有mode里。
+
+**** Runloop的内部逻辑
+     Runloop是这样一个函数，其内部是一个do-while循环。当你调用CFRunLoopRun()时，
+     线程就会一直停留在这个循环里；直到超时或被手动停止，该函数才会返回。
+     
+**** 苹果用 RunLoop 实现的功能
+     App启动后，系统默认注册了5个mode：
+     1. kCFRunLoopDefaultMode： App的默认mode，通常主线程是在这个mode下运行的。
+     2. UITrackingRunLoopMode： 界面跟踪 mode， 用于scrollview追踪触摸滑动，保证
+        洁面滑动谁不受其他mode影响。
+     3. UIInitializationRunLoopMode：在刚启动App时进入的第一个mode，启动完成后不
+        再使用。
+     4. GSEventReceiveRunLoopMode：接收系统事件内部mode，通常用不到
+     5. kCFRunLoopCommonModes：这是一个占位的mode
+
+***** AutoreleasePool
+      App启动后，在主线程的runloop里注册了两个observer，其回调都
+      是_wrapRunLoopWithAutoreleasePoolHandler()。
+
+      第一个observer监视的事件是entry(事件进入loop)其回调会调用
+      _objc_autoreleasePoolPush()创建自动释放池, 优先级最高,保证创建释放池发生
+      在其他所有回调之前.
+
+      第二个observer监视两个事件: BeforeWaiting(准备进入休眠)时调
+      用_objc_autoreleasePoolPop() 和 _objc_autoreleasePoolPush() 释放旧的释放池
+      并创建新的释放池. Exit(即将退出runloop)时调用 _objc_autoreleasePoolPop()
+      来释放自动释放池.这个observer的优先级最低,保证其释放池发生在其他所有回调之
+      后.
+
+      在主线程执行代码,通过写在诸如时间回调、timer回调内.这些回调会被runloop穿件
+      好的AutoreleasePool环绕着,所以不会出现内存泄漏,开发者也不必创建pool了.
+
+      
+***** 事件响应
+      苹果注册了一个source1事件来接受系统事件,其回调函数为
+      __IOHIDEventSystemClientQueueCallback().
+
+      当一个硬件事件(触摸/锁屏/晃动等)发生后,首先有IOKit.framework生成一个
+      IOHIDEvent事件并有SpringBoard接收.SprintBoard只接收按键,触摸,加速,接近传感
+      器等集中Event,随后用哪个mach port转发给需要的app进程.随后苹果注册那个
+      source1事件触发回调,并调用_UIApplicationHandleEventQueue() 进行应用内部的
+      分发.
+      
+      _UIApplicationHandleEventQueue() 会把IOHIDEvent处理并包装成UIEvent进行处理
+      或分发,其中包括识别 UIGesture/处理屏幕旋转/发送给UIWindow等,通常事件比如
+      UIButton点击,touchesBegin/Move/End/Cancel事件都在在这个回调中完成的.
+
+***** 手势识别
+      当上面的 _UIApplicationHandleEventQueue() 识别了一个手势时,其首先会调用
+      cancel将当前的 toucheseBegin/Move/End 系列回调打断,随后系统将对应的
+      UIGestureUIGestureRecognizer 标记为待处理.
+
+      苹果注册了一个Observer检测BeforeWaiting(loop即将进入休眠)事件,这个Observer
+      的回调函数是 _UIGestureRecognizerUpdateObserver(), 其内部会获取所有刚被标
+      记待处理的 GestureRecognizer, 并执行 GestureRecognizer 的回调.
+
+      当有 GestureRecognizer 的变化,这个回调会进行相应的处理
+
+***** 界面更新
+      在操作UI时, 比如改变了frame 更新了UIView/Layer的层次时,或者手动调用了
+      UIView/CALayer的setNeedsLayouot/setNeedsDisplay方法后, 这个UIView/CALayer
+      就被标记为待处理, 并被提交到一个全局容器去.
+
+      苹果注册了一个Observer监听BeforeWaiting(即将进入休眠)和Exit(即将退出Loop)
+      事件, 回调去执行一个很长的函数:
+      _ZN2CA11Transaction17observer_callbackEP19__CFRunLoopObservermPv() 这个函
+      数里会遍历所有待处理的 UView/CALayer 以执行实际的绘制和调整,并更新UI界面.
+
+***** 定时器
+      NSTimer其实就是CFRunLooopTimerRef, 他们事件是toll-free bridging 的, 一个
+      NSTimer注册到runloop追后,runloop会为其重复的时间点注册好事件.Runloop为了节
+      省资源,并不会在非常准确的时间点回调这个Timer,而是设置一个tolerance.
+
+      CADisplayLink 是一个和屏幕刷新率保持一致的定时器, 如果两次屏幕刷新之间执行
+      了一个长任务,那其中就会有一帧被跳过去,造成界面卡顿的感觉,在快速滚动
+      tableview时
+
+***** PerformSelector
+      当调用NSObject的performSelector:afterDelay:后,实际上其内部会创建一个Timer
+      并添加到当前线程的Runloop中,所以如果当前线程没有Runloop,则这个方法会失效.
+
+      当调用performSelector:onThread: 时, 实际上其会创建一个timer加到对应的线程
+      去,同样的,如果线程没有runloop 该方法也会失效.
+**** Runloop启动退出条件
+**** TODO Mach port的概念
+*** tagged pointer
+    [[https://blog.devtang.com/2014/05/30/understand-tagged-pointer/][深入理解Tagged Pointer · 唐巧的博客]] 
+    [[https://www.mikeash.com/pyblog/friday-qa-2015-07-31-tagged-pointer-strings.html][mikeash.com: Friday Q&A 2015-07-31: Tagged Pointer Strings]] 
+    [[https://juejin.im/post/58fe0c6561ff4b006671e789][iOS Tagged Pointer (源码阅读必备知识) - 掘金]] 
+*** KVO的实现原理                                                      :原理:
+    [[https://juejin.im/post/5adab70cf265da0b736d37a8][iOS底层原理总结 - 探寻KVO本质 - 掘金]] 
+    1. iOS用什么方式实现对一个对象的KVO？
+       当一个对象使用了KVO监听，iOS系统会修改这个对象的isa指针，改为指向一个全
+       新的通过Runtime动态创建的子类，同时系统为了屏蔽这个实现细节，会重写class
+       方 法，返回原来的class，子类拥有自己的set方法实现，set方法实现内部会 顺序
+       调用willChangeValueForKey方法、原来的setter方法实现、
+       didChangeValueForKey方法，而didChangeValueForKey方法内部又会调用监听器的
+       observeValueForKeyPath:ofObject:change:context:监听方法。  
+    2. 如何手动触发KVO
+       被监听的属性的值被修改时，会自动触发KVO。如果想要手动触发KVO，需要自己调
+       用 ~willChangeValueForKey~ 和 ~didChangeValueForKey~。
+       
+*** weak指针的实现原理                                                 :原理:
+    [[https://www.jianshu.com/p/d4d39cb16ac0][聊聊iOS开发中weak指针的原理 - 简书]] 
+    [[https://www.jianshu.com/p/3bd0ffaae19d][iOS底层 （一） arc weak指针原理 - 简书]]
+    [[https://www.jianshu.com/p/13c4fb1cedea][iOS 底层解析weak的实现原理（包含weak对象的初始化，引用，释放的分析） - 简书]]
+    [[https://www.mikeash.com/pyblog/friday-qa-2017-09-22-swift-4-weak-references.html][mikeash.com: Friday Q&A 2017-09-22: Swift 4 Weak References]] 
+    [[https://mikeash.com/pyblog/friday-qa-2015-12-11-swift-weak-references.html][mikeash.com: Friday Q&A 2015-12-11: Swift Weak References]] 
+    [[https://mikeash.com/pyblog/introducing-mazeroingweakref.html][mikeash.com: Introducing MAZeroingWeakRef]] 
+    [[https://mikeash.com/pyblog/friday-qa-2010-07-16-zeroing-weak-references-in-objective-c.html][mikeash.com: Friday Q&A 2010-07-16: Zeroing Weak References in Objective-C]] 
+**** Weak 原理简介 
+     Runtime维护了一个weak表，用于存储指向某个对象的所有weak指针。weak表其实是一
+     个哈希表，key所指的是对象的地址，value是weak指针的地址（这个地址的值是所指对
+     象的地址）数组。
+
+     weak 的实现原理可以概括为三步
+     1. 初始化时， runtime会调用 objc_initWeak函数，初始化一个新的weak指针指向对
+        象地址
+     2. 添加引用时，objc_initWeak函数会调用 objc_storeWeak()函数，
+        objc_storeWeak()函数的作用是更新指针指向，创建对应的弱引用表。
+     3. 释放时，调用clearDeallicating函数。clearDeallocating函数首先根据对象地址
+        获取所有weak指针地址数据，然后遍历这个数组把其中的数据设为nil，最后把这个
+        entry从weak表中删除，最后清理这个对象的纪录。
+**** Weak原理分析
+***** weak指针帮我们干了啥
+      程序运行时将弱引用存入到一个hash表中，当对象要销毁的时候，哈希函数根据对
+      象地址找到索引，然后从哈希表中去除对象对应的弱指针集合，挨个清空。 
+***** 调用栈
+      #+BEGIN_SRC text
+        -(void)dealloc ->
+        _objc_rootDealloc(id obj) ->
+        objc_object::rootDealloc() ->
+        object_dispose(id obj) ->
+        objc_destructInstance(id obj) ->
+        objc_object::clearDeallocating() ->
+        objc_object::clearDeallocating_slow() ->
+        weak_clear_no_lock(weak_table_t weak_table, id referent_id) ->
+        weak_entry_for_referent(weak_table_t *weak_table, objc_object *referent)
+
+      #+END_SRC
+      程序运行时，弱引用存放到一个hash表中，当对象要销毁的时候，哈希函数根据obj
+      地址获取到索引，然后从哈希表中取出对应的弱引用集合 weak_entries， 遍历
+      weak_entries并一一清空。哈希表实现使用“开放寻址法”
+*** AutoreleasePool的原理和现实                                        :原理:
+    [[https://www.jianshu.com/p/1b66c4d47cd7][AutoreleasePool的原理和实现 - 简书]]
+    [[https://blog.sunnyxx.com/2014/10/15/behind-autorelease/][黑幕背后的Autorelease · sunnyxx的技术博客]] 
+    [[https://draveness.me/autoreleasepool][自动释放池的前世今生 ---- 深入解析 autoreleasepool]] 
+    [[https://medium.com/swift2go/autoreleasepool-uses-in-2019-swift-9e8fd7b1cd3f][@autoreleasepool uses in 2019 Swift - Swift2Go - Medium]]
+    
+**** TODO AutoreleasePool 何时释放
+     没有手动加AutoreleasePool的情况下，Autorelease对象是在当前的runloop结束时释
+     放的，而他能够释放的原因是 *系统在每个Runloop迭代中都加入了自动的释放池Push
+     和Pop*
+
+**** Autorelease的原理
+     ARC下，我们使用 ~@autoreleasepool{}~ 来使用一个AutoreleasePool，随后编译器
+     将改写成下面的样子
+     #+BEGIN_SRC c++ 
+       void *context = objc_autoreleasePoolPush();
+         // other code
+       objc_autoreleasePoolPop(context);
+     #+END_SRC
+     这两个函数是对AutoreleasePoolPage的简单封装，自动释放的核心机制在于这个类，
+     他是一个C++的类，结构如下
+     #+BEGIN_SRC c++ 
+       class AutoreleasePoolPage {
+         magic_t const magic;
+         id *next;
+         pthread_t const thread;
+         AutoreleasePoolPage * const parent;
+         AutoreleasePoolPage *child;
+         uint32_t const depth;
+         uint32_t hiwat;
+       };
+     #+END_SRC
+     * AutoreleasePool没有单独的结构，而是有若干个AutoReleasePoolPage以双向链表
+       的 形式组合而成。
+     * AutoreleasePool是按线程一一对应的
+     * AutoreleasePoolPage的每个对象会开辟4096字节的内存，除了自己本身的实例变量
+       所占的空间，剩下的空间全部用来存储autorelease对象。
+     * ~id *next~ 指针作为游标指向栈顶最新add进来的autorelease对象的下一个位置
+     * 一个AutorealsePoolPage被占满时，会新建一个AutoReleasePoolPage对象，连接链
+       表，后来的autorelease对象加入的新的page中。
+    
+     所以，若当前线程只有一个AutoReleasePoolPage对象，并记录了很多autorelease对
+     象。 *向一个对象发送 -autorelease 消息，就是将这个对象加入了
+     AutoReleasePoolPage 的 next指针指向的位置* 。
+
+**** 释放时刻
+     每当进行一次 objc_autoreleasePush 调用，runtime向当前的AutoReleasePoolPage
+     中add进一个 *哨兵* 对象，值为nil。
+
+     objc_autoreleasePoollPush的返回值就是这个哨兵对象，被
+     objc_autoreleasePoolPop(哨兵）作为入参：
+     1. 根据传入的哨兵对象地址找到哨兵对象所处的page
+     2. 在当前page中，将晚于哨兵对象插入的所有autorelease对象都发送一次 release
+        消息，并向会移动指针，可以向前跨越若干个page，直到哨兵所在的位置。
+    
+**** POOL_SENTIEL 对象
+     上边提到的哨兵对象，实际上是POOL_SENTIEL对象，值为nil，定义如下：
+     #+BEGIN_SRC c
+       #define POOL_SENTIEL nil;
+     #+END_SRC
+     每个自动释放池初始化调用 objc_autoreleasePoolPush 的时候，都会把一个
+     POOL_SENTIEL对象加入到自动释放池的栈顶，并返回这个POOL_SENTIEL对象。
+     #+BEGIN_SRC c
+       int main(int argc, const char * argv[]) {
+         {
+           // atautoreleasepoolojb 就是 POOL_SENTIEL对象 
+           void * atautoreleasepoolojb = objc_autoreleasePoolPush();
+           // actual work
+           objc_autoreleasePoolPop(atautoreleasepoolojb);
+         }
+         return 0;
+       }
+     #+END_SRC
+     
+     当objc_atoreleasePoolPop调用是，会想自动释放池中的对象发送release消息，直到
+     第一个POOL_SENTIEL。 
+     
+*** Associated Objects的实现原理                                       :原理:
+    [[关联对象]] 
+    [[http://blog.leichunfeng.com/blog/2015/06/26/objective-c-associated-objects-implementation-principle/][Objective-C Associated Objects 的实现原理 - 雷纯锋的技术博客]] 
+*** TODO block的底层结构
+    [[https://blog.devtang.com/2013/07/28/a-look-inside-blocks/][谈Objective-C block的实现 · 唐巧的博客]] 
+    [[https://halfrost.com/ios_block/][深入研究 Block 捕获外部变量和 __block 实现原理]] 
+    OC中有三种block
+    * _NSConcreteGlobalBlock 没有外界变量或只用到全局变量、静态变量的
+      block为_NSConcreteGlobalBlock，声明周期从创建到应用程序结束。
+    * _NSConcreteStackBlock 只有外部局部变量、成员变量，且没有强指针引用的block
+      都是StackBlock。StackBlock的声明周期由系统控制，一旦返回之后，就被销毁了。
+    * _NSConcreteMallocBlock 有强指针引用或copy修饰的成员属性引用的block会被复制
+      一份到堆中成为MallocBlock，没有强指针引用即销毁，生命周期有程序员控制
+**** 实现方式 
+     block有如下定义
+     #+BEGIN_SRC c
+       struct Block_descriptor {
+         unsigned long int reserved;
+         unsigned long int size;
+         void (*copy)(void *dst, void *src);
+         void (*dispose)(void *);
+       };
+
+       struct Block_layout {
+         void *isa;
+         int flags;
+         int reserved;
+         void (*invoke)(void *, ...);
+         struct Block_descriptor *descriptor;
+         /* Imported variables. */
+       };
+      #+END_SRC
+      block 主要有六个部分
+      * isa指针，所有对象都有该指针，用于实现对象相关的功能
+      * flags，用于按bit位表示一些block的附加信息
+      * reserved，保留变量
+      * invoke，函数指针，指向具体的block实现的函数的调用地址
+      * descriptor，表示该block的附加描述信息，主要是size大叫，以及copy和dispose
+        函数的指针
+      * variables，capture过来的变量， block能够访问它外部的局部变量，就是因为这
+        些变量复制到了结构体中。
+
+*** 内存管理
+    [[https://juejin.im/post/5c85d6cef265da2dd37c533a][从runtime源码解读oc对象的引用计数原理 - 掘金]] 
+*** NSDictionary的原理
+*** NSMutableArray的原理
+*** NSProxy
+**** NSProxy的使用
+*** method swizzle的原理
+*** dispatch_once的原理
+*** timer和CADisplayLink的区别
+**** 原理不同
+     CADisplayLink是一个能够让我们以和屏幕刷新率同步的频率将特定的内容滑动屏幕
+     上的定时器. 被以特定的mode注册到runloop后,每当屏幕刷新内容结束后,runloop就
+     会向 displaylink指定的target发送消息.
+     
+     timer 以特定的模式注册到runloop后,每当设定的事件周期到达后,runloop会想指定
+     的target的selector发送消息.
+**** 周期设置方式不同
+     ios设备的屏幕刷新率是60hz,所以displaylink的默认调用周期是每秒60次,这个周期
+     可以通过frameinterval属性设置, displaylink对selector每秒调用的次数是
+     60/frameinterval
+
+     Timer的selector调用周期可以通过初始化直接设定周期
+**** 精度不同
+     iOS设备的屏幕刷新率是固定的, displaylink在正常情况下会在每次刷新结束调用
+     selector,精度很高.
+
+     timer精度相对较低, 如果runloop处于UITrackingMode,为了保证UI界面的计时相应,
+     cpu就不再对timer进行调度. 同时也有处于性能的考虑,cpu并不会非常精确调度timer
+*** OC和CF对象如何转换
+    [[http://www.veryitman.com/2018/03/07/C-%E6%8C%87%E9%92%88%E4%B8%8E-OC-%E5%AF%B9%E8%B1%A1%E4%B9%8B%E9%97%B4%E7%9A%84%E8%BD%AC%E6%8D%A2/][C 指针与 OC 对象之间的转换 | veryitman]] 
+    在ARC环境下，提供了桥接的技术，OC对象和CF对象之间转换的桥梁。
+    转换方法有
+    * (__bridge_retained CFType) expression
+    * (__bridge_transfer CFType) expression
+    * (__bridge type) expression
+    CF对象必须使用CFRetain和CFRelease进行内存管理。
+    使用OBJC对象和CF对象相互转换的时候，必须让编译器直到，到底由谁来负责释放对象，
+    是否交给ARC处理，只有正确的处理，才能避免内存泄漏和过度释放导致的程序崩溃。
+**** __bridge_retain
+     __bridge_retain等同于 CFBridgeRetain()。
+     
+     将objc对象转换为cf对象，并把对象的所有权桥接给Core Foundation对象，同时剥夺
+     ARC的管理权，后续需要开发者使用CFRelease或者相关方法来手动释放CF对象。
+     #+BEGIN_SRC c++ 
+       void *cPointer;
+       NSObject *objc = [[NSObject alloc] init];
+
+       cPointer = (__bridge_retain void*)objc;
+
+       CFRelease(cPointer);
+     #+END_SRC
+     
+**** __bridge_transfer
+     __bridge_transfer相当与CFBridgingRelease
+     将非oc对象转换为oc对象，同时将对象的管理权交给ARC，开发者无需管理内存。
+
+     #+BEGIN_SRC c++
+       CFUUIDRef uuid = CFUUIDCreate(kCFAllocatorDefault);
+       CFStringRef strUUID = CFUUIDCreateString(kCFAllocatorDefault, uuid);
+       NSString *str = (__bridge_transfer NSString *)strUUID;
+       //无需释放 strUUID
+       //CFRelease(strUUID);
+       CFRelease(uuid);
+     #+END_SRC
+     
+**** __bridge
+     不改变对象的所有权，需要我们自己来管理内存，它是上面两个方法的简化版本。
+
+     __bridge 可以将OC对象与C指针相互转换
+     #+BEGIN_SRC c++
+       //CFString -> OC 对象
+       CFStringRef cfString = CFStringCreateWithCString(kCFAllocatorDefault, "very", kCFStringEncodingUTF8);
+       NSString *nsString = (__bridge NSString *)cfString;
+       NSLog(@"CFString -> NSString: %@", nsString);
+       CFRelease(cfString);
+     #+END_SRC
+     如果不调用CFRelease，xcode的静态检查会提示我们存在内存泄漏。
+
+     #+BEGIN_SRC c++
+       //OC 对象 -> CFString
+       NSString *nstr = @"itman";
+       CFStringRef cfStringRef = (__bridge CFStringRef)nstr;
+       NSLog(@"NSString -> CFString: %@", cfStringRef);
+       CFRelease(cfStringRef);
+     #+END_SRC
+     这里无论使用CFRelease与否，静态检查器都不会报错，说这这里的内存已经有ARC接
+     管。
+
+**** 例子
+     
+***** 野指针
+      #+BEGIN_SRC c++
+        void *p;
+        {
+          NSObject *objc = [[NSObject alloc] init];
+          p = (__bridge void*)objc;
+        }
+
+        NSLog(@"mark: %@", (__bridge NSObject*)p);
+     #+END_SRC
+     当 objc 这个对象超出作用域范围，其内存就会被回收，接着在作用域范围外用 void
+     *p 去访问 objc 的内存，就造成了野指针. 
+
+     将 __bridge 改为 __bridge_retained 可以解决问题
+     #+BEGIN_SRC c++
+       void *p;
+       {
+         NSObject *objc = [[NSObject alloc] init];
+         //或者 p = (__bridge_retained void*)objc;
+         p = (void *)CFBridgingRetain(objc);
+       }
+
+       NSLog(@"mark: %@", (__bridge NSObject*)p);
+
+       // 一定要释放
+       CFRelease(p);
+     #+END_SRC
+*** 原子操作是否是线程安全的
+    [[http://liuduo.me/2018/02/08/objective-c-atomic/][Objective-C 原子属性 | Knowledge Library]] 
+    
+    原子操作不是线程安全的，自保证setter和getter存取方法的线程安全，并不保证整个
+    对象的线程安全。例如一个数组对象，如果一个线程循环的读取内存，另一个线程循环
+    的写内存，就肯定会产生内存问题。最好的方法还是加锁。
+*** TODO load和initialize方法
+*** JSPatch的实现原理
+    [[https://github.com/bang590/JSPatch/wiki/JSPatch-%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3][JSPatch 实现原理详解 · bang590/JSPatch Wiki · GitHub]] 
+** Swift
+*** TODO enum关联对象是如何实现的 
+*** TODO ABI稳定意味这什么
+*** TODO 编译pipeline
+    [[https://forums.swift.org/t/what-should-i-learn-if-i-want-to-contribute-to-the-swift-compiler/18144/5?u=dvlprliu][Compiling pipeline]]
+*** 性能优化                                                           :优化:
+    [[https://tech.meituan.com/2018/11/01/swift-compile-performance-optimization.html][深入剖析Swift性能优化 - 美团技术团队]]
+*** class 和 struct的区别
+    * class是引用类型 struct是值类型
+    * 结构体不可被继承
+    * 值类型被赋予一个变量、常量或者被传递给一个函数的时候, 它的值会被拷贝
+    * 引用类型被赋予到一个变量、常量或者被传递给一个函数的时候,其值不会被拷贝.因
+      此引用的值已存在的实体本身而不是拷贝.
+*** 值类型写时复制
+    * 只有当一个值发生写入行为时,才会有复制行为
+    * 在结构提内部用一个引用类型来存储实际数据,再不进行写入操作的普通传递过程中,
+      都是将内部引用计数+1, 在进行写入操作是,对内部的引用做一次copy操作来存储新
+      的数据,防止和之前引用产生意外的数据共享.
+    * 有一个 isKnownUniquelyReferenced 函数,它能检查一个类的实例是不是唯一的引用,如
+      果是,我们就不需要为结构体进行复制,如果不是,说明对象被不同的结构体共享,这是
+      对他进行更改就需要进行复制
+*** static dispatch vs dynamic dispatch
+    [[https://trinhngocthuyen.github.io/tech/method-dispatch-in-swift/][Method dispatch in Swift • Thuyen's corner]] 
+    [[https://medium.com/flawless-app-stories/static-vs-dynamic-dispatch-in-swift-a-decisive-choice-cece1e872d][Static vs Dynamic Dispatch in Swift: A decisive choice]]
+    [[https://medium.com/better-programming/static-dispatch-over-dynamic-dispatch-a-performance-analysis-47f9fee3803a][Static Dispatch Over Dynamic Dispatch - Better Programming - Medium]] 
+    [[https://web.mst.edu/~nmjxv3/articles/function_dispatch.html][C++ Function Dispatch Under The Hood]] 
+    [[https://marcofoco.com/the-power-of-devirtualization/][The power of devirtualization  C++ explained to my dog]] 
+**** 静态派发 static dispatch
+     * 如果一个方法调用是静态派发的，那么编译器在编译期就确定了方法所在的地址，
+       当这个方法被调用的时候，编译器会直接跳转方法所在的内存地址执行相应的指令。
+
+     * 这种派发方式具有非常高的执行效率，编译器也可以进行一些优化，比如内联。在
+       编译的流程中编译器会作一些相关的优化，如果可能的话尽可能将方法调用改为静
+       态派发。
+**** 动态派发 dynamic dispatch
+     * 在动态派发的情况下，是能等到运行时才能确定需要调用哪个方法。
+     * 静态派发效率很高，但是限制了灵活性，尤其是在支持多态特性方面。这也就是为
+       什么多数OOP语言支持动态派发。
+     * swift语言支持两种动态派发：table dispatch 和 message dispatch
+***** table dispatch
+     * 多数编译型的语言使用这种方式。一个类关联一个virtual table，这个v-table里
+       存放了所有这个类的函数指针。
+     * vtable是在编译期构建的，与静态派发相比，vtable里只多了两个额外的指令，读
+       取和跳转。所以理论上来讲还是很快的。
+***** message dispatch
+      * 使用objc消息发送的方式进行派发，依赖objc的runtime库。
+      * 与table dispatch不同 消息派发的哈希表可以在运行时进行更改
+**** 如何确定派发机制
+     将源码编译为SIL，如果一个方法调用上出现了vtable字样，那么这个方式是
+     table dispatch的，如果标记了foreign和message，那么说明这个方法是消息派发。如
+     果没有出现上述情况，则说明是静态派发。
+**** 一些情况
+     * 任何结构体或者值类型的方法都是静态派发的，因为他不可能被重写。
+     * 显式声明
+       * 被final修饰的方法会被静态派发
+       * 被dynamic修饰的方法会使用message派发。
+     * 普通的扩展（没有被final，dynamic，@objc）是静态派发。
+**** 原则是什么
+     1. 优先使用 静态派发
+     2. 如果方法需要被重写，有选择使用 table dispatch
+     3. 如果需要被重写，同时需要向objc暴露，则使用 message dispatch 
+
+     |                     | Direct        | Table               | Message               |
+     |---------------------+---------------+---------------------+-----------------------|
+     | explicitly enforced | final, static | --                  | dynamic               |
+     | Value type          | all methods   | --                  | --                    |
+     | Protocols           | extensions    | initial declaration | --                    |
+     | Class               | extensions    | initial declaration | extensions with @objc |
+     
+*** defer的用法
+    * 使用defer代码块儿来表示函数返回前,函数中最后执行的代码.无论函数是否执行出错
+      误,defer块里的代码都会执行.
+    * defer块中的代码,会在当前作用于结束前调用,每当一个作用域结束就进行该作用的
+      defer执行.
+    * 如果一个作用域里有多个defer,他们将按相反的顺序执行,可以他们当作一个栈.
+    #+BEGIN_SRC swift
+      func doSomethingFile{
+          openDirectory()
+          defer{
+              closeDirectory()
+          }
+          openFile()
+          defer{
+              closeFile()
+          }
+          // do other things
+      }
+     #+END_SRC
+     上面这段代码,返回前先执行 closeFile 然后执行 closeDirectory
+*** inout参数
+    * 函数的参数默认为常量, 试图从函数体内部更改函数参数的值会导致编译错误.如果
+      希望修改参数值,并希望这些更改调用结束后仍然存在, 可以将参数生命为 inout 参
+      数
+    * 只能将变量作为inout参数, 因为常量和字面量无法修改
+*** 什么是高阶函数
+    一个函数可以如果可以作为某一个函数的参数,或者作为函数的返回值,那么这个函数就
+    是高阶函数. 常见的高阶函数有 map() , filter()  reduce() 等.
+*** static 和 class 的区别
+    * 在swift中,static 和 class都表示“类型范围作用域”的关键字. 在所有类型中,
+      我们可以使用static来描述类型作用域，class是专门用于描述 class 类型的
+    * static可以修饰属性和方法
+      * 所修饰的属性和方法不能够被重写
+      * static修饰的类方法和属性包含了final的特性, 重写会报错
+    * class修饰方法和计算属性
+      * 可以使用class修饰方法和计算属性,不能修饰存储属性
+      * 类方法和计算属性是可以被重写的,可以使用class关键字也可以使用static关键字
+*** 自定义模式匹配
+    [[https://appventure.me/guides/pattern_matching/intro.html][Match me if you can]] 
+    * 模式: 代表单个,或者复合值的结构, 也就是说模式不是个特定的值,他是一种抽象结
+      构
+    * swift中的模式分为两类:
+      * 一种能匹配任何类型的值, 另一种在运行时匹配某个特定的值, 可能会失败.
+      * 第一种模式用于简单的变量,常量和可选绑定中的值. 此模式包括通配符模式,标识
+        模式, 以及包含前两种模式的值绑定和元组模式. 你可以为此类模式指定一个类型
+        标识,从而限制他们只能匹配某种特定类型的值
+      * 第二种模式用于全局匹配模式,这种情况下,你试图匹配的值可能在运行时不存在.
+        此类模式包含枚举用例模式,可选模式, 表达式模式i和类型转换模式. 你在switch
+        语句的case标签中,do语句的catch字句中,或者在 if while guard for-in语句的
+        case条件语句中使用这个类模式.
+      * 重载 ~= 运算符以实现自定义模式匹配
+*** dynamic framework 和 static framework 的区别
+    * 静态库在程序编译期会被链接到代码中,程序运行时不再需要修改静态库; 而动态库
+      在程序编译时不会被链接到目标代码中,只是在程序运行时才会被载入, 因为在程序
+      运行期间还需要动态库存在.
+    * 静态库的好处
+      * 模块化, 分工合作, 提高了代码的复用以及核心技术的保密程度
+      * 避免少量改动经常导致大量的重复编译链接
+      * 也可以重用, 而不是共享使用
+    * 动态库的好处
+      * 使用动态库, 可以最终将执行文件体积缩小, 将整个应用程序分模块, 团队合作进
+        行分工, 影响比较小.
+      * 多个应用程序共享内存中的同一份库文件, 节省资源
+      * 可以不重新编译链接可执行文件的前提下, 更新动态库文件达到更新应用程序的目
+        的.
+    * 区别
+      * 静态库在链接时, 会被完整拷贝到可执行文件中, 如果多个app都是用了同一个静
+        态库, 那么每个app都会拷贝一份, 缺点是浪费内存
+      * 动态库不会复制, 只有一份, 程序运行时动态加载到内存中, 系统只会加载一次,
+        多个程序共用一份, 节省了内存. 类似于是哟哦那个变量的内存地址一样.
+*** Swift 比 OC的优势
+    * swift 更易阅读, 语法和文件结构简易化
+    * swift 更易于维护, 文件分离后结构更清晰
+    * swift 更加安全, 类型安全的语言
+    * swift 代码更少, 语法简洁, 可以省区大量冗余的代码
+    * swift 速度更快, 运算性能更高
+*** Swift 是面向对象还是函数式编程的语言.
+    * Swift 是面向对象的语言, 因为它支持类的封装, 继承和多态.
+    * 支持函数编程范式, 函数作为一等公民, 可以作为参数和返回值,可以很容易的实现
+      函数式编程
+*** swift的访问控制权限
+    swift有5个级别的访问控制权限, 从高到低依次为: open public internal
+    fileprivate private
+    
+    高级别的变量不允许被定义为低级别变量的成员变量. 比如一个private的class中不能
+    含有 public 的属性. 反之, 低级别的变量却可以定义在高级别的变量中. 比如public
+    的class中可以含有private的属性.
+    
+    * open 具备最高级别的访问权限, 其修饰的类和方法可以在任意module中被访问和重
+      写;
+    * public 的权限仅次于 open, 与open唯一的区别在于修饰的对象可以在任意module中
+      被访问,但是不能被重写.
+    * internal, 是默认的访问权限, 他表示只能在当前的module中访问和重写, 他可以被
+      一个module的多个文件访问, 但不可以被其他的module访问.
+    * fileprivate 其修饰的对象只能在当前文件中被使用
+    * private 它所修饰的对象只能在定义的作用域内使用. 离开了这个作用域, 即使是同
+      一个文件中的其他作用于, 也无法访问.
+*** 解释关键字： strong weak unwoned
+    swift的内存管理机制于Objective-C以为为ARC， 他的基本原理是， 一个对象在没有
+    任何强引用指向它时， 其占用的内存被回收。 反之，只要有任何一个强引用指向该对
+    象，他就一直存在在内存里。
+    
+    * strong 代表强引用，当一个对象被声明为strong时，就表示父层级对该对象有一个
+      强引用，此时引用计数会+1
+    * weak 代表弱引用，父层级对该对象有一个弱引用指向，该对象引用计数不会+1， 他
+      的对象释放后，引用也随即消失，设置为nil，不会崩溃。
+    * unwoned与弱引用本质上一样，唯一不同的是，对象在释放后不依然有一个无效的指
+      针指向它，它不是Optional也不指向nil，如果继续访问该对象，程序就会崩溃。
+    * weak和unwond的引入是为解决循环引用的问题，当两个对象相互持有对方就会产生循
+      环引用造成内存泄漏。
+    * 当确定引用的对象不会释放，使用unowned
+*** String Array Dictionay 为什么设计成值类型
+    * 值类型最大的优势在于内存使用高效。值类型在栈上操作，引用类型在堆上操作。栈
+      上操作仅仅是单个指针的上下移动，而堆上操作则涉及到合并、移位、重新链接等。
+      也就是说swift这样设计，大幅减少了堆上的内存分配和回收的次数。同时Copy on
+      write又将值传递和复制的开销降到了最低。
+    * 同时解决线程安全的问题。
+*** mutating关键字的作用
+    * 类是引用类型，而结构和枚举是值类型。默认情况下，不能在其实例方法中修改值类
+      型的属性。为了修改之类的属性，必须在实例方法中使用mutating关键字。使用这个
+      关键字能够修改属性的值，并在方法实现结束是将其写回到原始结构。
+
+*** weak指针的实现原理                                                 :原理:
+    [[https://www.mikeash.com/pyblog/friday-qa-2017-09-22-swift-4-weak-references.html][mikeash.com: Friday Q&A 2017-09-22: Swift 4 Weak References]] 
+    [[https://mikeash.com/pyblog/friday-qa-2015-12-11-swift-weak-references.html][mikeash.com: Friday Q&A 2015-12-11: Swift Weak References]] 
+    
+**** 对象的数据
+     一个swift对象基本由这几种数据组成。
+     1. 存储属性，可以直接被程序员访问到。
+     2. 对象的类，主要用来做动态派发，以及共type(of:)函数使用，这部分详细是隐藏
+        的，但是type(of:)说明的他的存在。
+     3. 引用计数，这部分信息是完全隐藏的，除非去读对象的原始内存，或者使用
+        CFGetRetainCount读取。
+     4. 其他扩展信息，例如关联属性（associated object）
+
+     那么这些数据都应该存在那里？
+
+     在objc中，类和存储属性都内联的存储在对象的内存中，类信息存储在第一个指针大
+     小的块儿里，实例变量紧随其后。扩展信息存储来一个外部表里，但我们修改一个关
+     联对象，运行时会去一个很大的哈希表中进行查找，这个哈希的键为对象的地址。这
+     个过程很慢，而且为了使在多线程环境下不失败，在访问的时候需要加锁。而根据操
+     作系统的不同，或者CPU架构的不同，引用计数信息有时候存在对象中，有时候存在外
+     部表里。
+
+**** side table
+     swift弱引用的实现用到了side table的概念。
+
+     side table是一个独立的内存块，用来存储一些额外的信息，对于一个对象来说side
+     table可有可无。
+
+     任何一个对象都有一个指向side table的指针，这个side table也存在一个指针指回
+     到该对象，side table可以存储其他的一些信息，比如关联对象。
+
+     出事状态下，对象的第一个字（word）存储类信息，接下来的一个字存储引用计数。
+     当这个对象需要side table的时候，第二个字就会被替换为指向side table的指针，
+     同时引用计数的信息也会存进side table。这两种情况通过设置该字中的一个比特位
+     来进行区分。
+
+*** Decodable原理                                                      :原理:
+    [[https://martiancraft.com/blog/2020/03/going-deep-with-decodable/?utm_campaign=iOS%2BDev%2BWeekly&utm_medium=email&utm_source=iOS%2BDev%2BWeekly%2BIssue%2B447][Going Deep With Decodable]]
+
+*** 5.1新特性
+    [[https://www.hackingwithswift.com/articles/182/whats-new-in-swift-5-1][What’s new in Swift 5.1 – Hacking with Swift]][[https://www.hackingwithswift.com/articles/182/whats-new-in-swift-5-1][What’s new in Swift 5.1 – Hacking with Swift]] 
+**** 生成初始化方法更统一
+**** 单行方法隐式返回
+**** 
+*** How to contribut to swift 
+    [[https://forums.swift.org/t/important-talks-and-articles-for-first-time-swift-contributors/34537][Important talks and articles for first time Swift Contributors - Compiler - S...]] 
+*** TODO 内存布局
+    [[https://academy.realm.io/posts/goto-mike-ash-exploring-swift-memory-layout/][Exploring Swift Memory Layout]] 
+    [[https://www.mikeash.com/pyblog/friday-qa-2014-07-18-exploring-swift-memory-layout.html][mikeash.com: Friday Q&A 2014-07-18: Exploring Swift Memory Layout]] 
+* 网络相关
+** protobuf
+** TODO POST和GET的区别
+   [[https://blog.csdn.net/qq_26360877/article/details/70665820][get和post的区别]] 
+   * get把请求的数据放在url上，即http协议头上。post把数据放在http包内
+   * get请求的数据最大是2k，限制实际上取决与浏览器；post理论上没有限制
+   * get产生一个tcp数据包，浏览器会把httpheader和data一并发送出去，浏览器响
+     应200。post产生两个tcp数据包，先发送http header，服务端响应100 continue，浏
+     览器在发送data，服务端响应200 ok
+   * get在浏览器回退时是无害的。post会再次提交请求
+   * get产生的地址可以被bookmark，而post不可以
+   * get请求会被浏览器主动cache，post不会，除非手动设置
+   * get请求只能进行url编码，而post支持多种编码方式
+   * get请求参数会被完整保留在浏览记录里，而post中的参数不会被保留
+   * get只接收ascii字符的参数类型，而post没有限制
+** http常用的方法
+   * get
+   * post
+   * patch
+   * delete
+   * put
+** HTTP有哪些部分
+** TCP和UDP的区别
+   [[https://zhuanlan.zhihu.com/p/24860273][TCP和UDP的区别 - 知乎]]
+*** TCP是可靠的链接
+*** UDP是不可靠链接
+*** 对系统资源的要求（TCP较多，UDP较少）
+*** UDP程序结构简单
+*** 流模式与数据报模式
+*** TCP保证过数据正确性，UDP可能丢包
+*** TCP保证数据舜秀，UDP不保证
+** 七层模型
+** HTTP2的特性
+   [[https://zhuanlan.zhihu.com/p/26559480][一文读懂 HTTP/2 特性 - 知乎]] 
+*** 二进制分帧
+*** 多路复用
+*** 服务器推送
+*** 头部压缩
+** TODO cookie和session的区别 
+*** 作用
+    * cookie 采用的客户端的会话状态的一种存储机制。他是服务器在本地机器上存储的
+      小短文本或者是内存中的一段数据，并随着每个请求发送至同一个服务器。
+    * session 是一种服务端存储机制，它把写文件信息以文件的形式存放在服务端的
+      硬盘上或者内存中。当客户端向服务端发送请求，要求服务端产生一个session的
+      时候，服务端会先检查cookie里与没有session_id，以及对应的session_id是否过期。
+      如果有这样的session_id，服务端会根据session_id将session检索出来。如果没有，
+      服务端回重新创建一个新的。
+*** 存放位置不同
+    cookie存放在客户端，临时文件夹中；session存放在服务端，一个session域对象为一
+    个用户浏览器服务
+*** 安全性不同
+    cookie是以明文的方式存放在客户端的，安全性低，可以通过加密算法加密后存放；
+    session存放在服务器内存中，安全性好。
+*** 网络传输量
+    cookie会传递消息给服务器；session本身存放在服务器，不会有传送流量
+*** 生命周期
+    cookie的生命周期是累计的，从创建时就开始计时，20分钟后，生命周期结束；
+    session的生命周期是间隔的，从创建时，开始计时，如果在20分钟没有访问session，
+    那么session的生命周期就被销毁。但是，如果在20分钟内访问过session，那么，将重
+    新计算session的生命周期，关机会造成session生命中后期结束，但是cookie不会。
+*** 访问范围
+    cookie为多个浏览器共享；
+    session为一个用户浏览器独享
+** UDP丢包问题
+   [[https://cizixs.com/2018/01/13/linux-udp-packet-drop-debug/][linux 系统 UDP 丢包问题分析思路 | Cizixs Write Here]] 
+* 项目相关
+** HTTP/1和HTTP/2的区别
+** HTTP和HTTPS的区别
+** http常见的错误代码
+   * 200
+   * 300
+   * 400
+   * 500
+* 开源代码相关
+** kingfisher
+** DatasourceKit
+* 算法数据结构相关
+* 操作系统相关
+** TODO 生产者消费者问题
+   [[https://juejin.im/post/5aeec675f265da0b7c072c56][一篇文章，让你彻底弄懂生产者--消费者问题 - 掘金]] 
+   生产者消费者问题，实际上主要是包含两个类现场，一种是生产者线程用于生产数据，
+   另一种是消费者线程，用于消费数据，为了解耦生产者和消费者的关系，通常会采用共
+   享的数据区域，就像一个仓库，生产者生产数据之后直接放置在共享数据区中，并不关
+   系消费者的行为。消费中只需从共享数据区中区获取数据，就不再需要关心生产者的行
+   为。共享数据区中应该具备这样线程间并发写作的功能。
+   1. 如果共享数据区已满，阻塞生产者继续生产数据放置入内。
+   2. 入股共享数据为空的话，阻塞消费者继续消费数据。
+** 线程池 
+*** 使用线程池的目的
+    1. 线程是稀缺资源，不能频繁的创建。
+    2. 解耦作用；线程的创建于执行完全分开，方便维护。
+    3. 应当将其放入一个池子中，可以给其他任务进行复用。
+*** 原理
+    线程池使用池化技术，最核心的思想是把宝贵资源放入到一个池子中。每次使用都从池
+    子里面去，用完之后再放回到池子里。
+** 进程和线程的区别
+   一个程序至少要有一个进程和一个线程
+   * 进程是资源分配的最小独立单元,进程是具有一定独立功能的程序关于某个数据集合上
+     的一次运行活动,进程是系统资源分配和调度的一个独立单位
+   * 线程,进程下的一个分支,是进程的实体, 是CPU调度和分配的基本单元,他是比进程更
+     小的能独立运行的基本单位,线程自己基本不拥有系统资源,只拥有一点在运行中必不
+     可少的资源(程序计数器,一组寄存器,栈) 但是它可与同属一个进程的其他线程共享所
+     用的全部资源.
+   * 进程和线程都是有操作系统的程序运行基本单元,系统利用该基本单元实现系
+     统对应用的并发性
+   * 进程和线程的主要差别在于他们是不同操作系统资源管理方式,进程有独立的地址空
+     间, 一个进程崩溃后,在保护模式下不会对其他进程产生影响,而线程只是一个进程中
+     不同的执行路径.线程有自己的堆栈和局部变量,但线程之间没有单独的地址空间,一个
+     线程崩溃就等于整个进程崩溃. 所以多进程程序要比多线程程序健壮,但切换进程时,
+     耗费资源较大,效率要差一些.
+   * 但对于一些要求同时进行并且又要共享某些变量的并发操作,只有用线程,不能用进程.
+** 堆和栈的区别
+   [[https://www.jianshu.com/p/5db3323cf171][iOS面试题：堆和栈的区别 - 简书]]
+   * 栈 由编译器自动分配释放,存放方法的参数值,局部变量的值等,栈是
+** 进程间通信
+   [[https://nshipster.com/inter-process-communication/][Inter-Process Communication - NSHipster]] 
+*** 匿名管道通信
+*** 高级管道通信
+*** 有名管道通信
+*** 消息队列通信
+*** 信号量通信
+*** 信号
+*** 共享内存通信
+*** 套接字通信
+* 设计模式
+** MVC
+** MVVM
+* Links
+  [[https://www.jianshu.com/p/e87e0be2281f][阿里、字节：一套高效的iOS面试题 - 简书]]
+
+
