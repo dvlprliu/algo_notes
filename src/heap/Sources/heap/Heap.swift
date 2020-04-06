@@ -140,3 +140,14 @@ extension Heap where T: Equatable {
         return nil
     }
 }
+
+// MARK: - Sort
+extension Heap {
+    public mutating func sort() -> [T] {
+        for i in stride(from: count - 1, through: 1, by: -1) {
+            nodes.swapAt(0, i)
+            shiftDown(from: 0, until: i)
+        }
+        return nodes
+    }
+}
