@@ -24,5 +24,11 @@ let package = Package(
         .testTarget(
             name: "heapTests",
             dependencies: ["heap"]),
+        .target(
+            name: "leetcode",
+            dependencies: ["heap"]),
+        .testTarget(
+            name: "leetcodeTests",
+            dependencies: ["leetcode"]),
     ]
 )

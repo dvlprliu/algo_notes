@@ -63,7 +63,7 @@
        级别复杂度；2）低级别和高级别复杂度出现具有时序性，均摊结果一般等于低级别
        复杂度。
 * 数组
-  数组是一种 *线性表* 数据结构。他用一组连续的内存空间，存储一组具有相同类型的数
+                                                                                                              数组是一种 *线性表* 数据结构。他用一组连续的内存空间，存储一组具有相同类型的数
   据。
 ** 支持随机访问
    因为数组用 *连续的存储空间和相同的类型* 存储数据，所以数组支持随机访问，通过
@@ -2028,6 +2028,7 @@
    3. 如果 key1!=key2, 那么 hash(key1)!=hash(key2)
 
 ** 散列冲突
+   什么叫散列冲突
    解决散列冲突的方法有两种 *开放寻址法* *链表法*
 
 *** 开放寻址法
@@ -2119,7 +2120,94 @@
     *基于链表的散列冲突处理方法比较适合存储大对象、大数据量的散列表，而且比起开
     放寻址法，它更加灵活，支持更多的优化策略*
 
-* 二叉树 
+* 树 
+** 重要概念
+   * 父节点
+   * 子节点
+   * 兄弟节点
+   * 根节点
+   * 叶子节点
+   * 高度
+   * 深度
+   * 层
+** 二叉树
+   每个节点最多只有两个节点，左子节点和右子节点
+*** 满二叉树
+    叶子节点在最底层，除了叶子节点之外，每个节点都有左右两个子节点  
+*** 完全二叉树
+    叶子节点都在最底下两层，最后一层的叶子节点靠左排列，并且除了最后一层，其他层
+    的节点个数都达到最大
+*** 二叉树的存储
+    1. 基于指针的二叉链式存储
+    2. 基于顺序表的存储
+**** 链式存储
+     每个节点有三个字端：值，指向左节点的指针，指向右节点的指针
+     #+NAME: TreeNode
+     #+BEGIN_SRC swift
+       class TreeNode<Value> {
+           let value: Value
+           var left: TreeNode?
+           var right: TreeNode?
+
+           init(_ value: Value) {
+               self.value = value
+           }
+       }
+     #+END_SRC
+**** 顺序存储
+     使用数组(tree)存储树中的节点，对于在位置i的节点
+     * 根节点：0
+     * 左子节点： i * 2 + 1
+     * 右子节点： i * 2 + 2
+     * 父节点： ( i - 1 ) / 2
+     
+     顺序存储方式适合用来存储完全二叉树，一般二叉树使用顺序方式存储会造成数组空
+     洞，浪费存储空间
+
+*** 二叉树的遍历
+    前序遍历，中序遍历，后续遍历
+    
+**** 前序遍历
+     根节点 -> 左子树 -> 右子树
+     #+NAME: preorderTraversal recursive
+     #+BEGIN_SRC swift
+          <<TreeNode>>
+          func preorderTraversal(_ root: TreeNode<Value>?) -> [Value] {
+              guard let root = root else { return [] }
+              return [root.value] + preorderTraversal(root.left) + preorderTraversal(root.right)
+          }
+     #+END_SRC
+     
+     #+NAME: preorderTraversal iterate
+     #+BEGIN_SRC swift
+       func preorderTraversal<Value>(_ root: TreeNode<Value>?) -> [Value] {
+           guard let root = root else { return [] }
+           var result = [Value]()
+           var stack = [root]
+           while !stack.isEmpty {
+               let node = stack.removeLast()
+               result.append(node.vale)
+               if let left = node?.left {
+                   stack.append(left)
+               }
+               if let right = node?.right {
+                   stack.append(right)
+               }
+           }
+           return result
+       }
+     #+END_SRC
+
+**** 中序遍历
+     左子树 -> 根节点 -> 右子树
+     
+***** TODO 补充代码
+
+**** 后续遍历
+     左子树 -> 右子树 -> 根节点
+
+***** TODO 补充代码
+
 * 堆
 ** 如何理解堆
    堆是一种特殊的树，只要满足两点要求，就是一个堆

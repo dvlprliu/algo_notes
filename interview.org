@@ -740,7 +740,6 @@
       在主线程执行代码,通过写在诸如时间回调、timer回调内.这些回调会被runloop穿件
       好的AutoreleasePool环绕着,所以不会出现内存泄漏,开发者也不必创建pool了.
 
-      
 ***** 事件响应
       苹果注册了一个source1事件来接受系统事件,其回调函数为
       __IOHIDEventSystemClientQueueCallback().
@@ -1341,7 +1340,7 @@
 ** TODO POST和GET的区别
    [[https://blog.csdn.net/qq_26360877/article/details/70665820][get和post的区别]] 
    * get把请求的数据放在url上，即http协议头上。post把数据放在http包内
-   * get请求的数据最大是2k，限制实际上取决与浏览器；post理论上没有限制
+   * get请求的数据最大是2k，限制实际上取决与浏览器, 12k；post理论上没有限制
    * get产生一个tcp数据包，浏览器会把httpheader和data一并发送出去，浏览器响
      应200。post产生两个tcp数据包，先发送http header，服务端响应100 continue，浏
      览器在发送data，服务端响应200 ok
@@ -1413,6 +1412,7 @@
 ** kingfisher
 ** DatasourceKit
 * 算法数据结构相关
+  [[file:algorithms.org][数据结构]] 
 * 操作系统相关
 ** TODO 生产者消费者问题
    [[https://juejin.im/post/5aeec675f265da0b7c072c56][一篇文章，让你彻底弄懂生产者--消费者问题 - 掘金]] 

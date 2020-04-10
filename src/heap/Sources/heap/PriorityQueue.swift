@@ -11,7 +11,7 @@ import Foundation
 public struct PriorityQueue<T> {
     private(set) var heap: Heap<T>
 
-    init(sort: @escaping (T, T) -> Bool) {
+    public init(sort: @escaping (T, T) -> Bool) {
         self.heap = Heap<T>(sort: sort)
     }
 
@@ -31,6 +31,7 @@ public struct PriorityQueue<T> {
         heap.insert(value)
     }
 
+    @discardableResult
     public mutating func dequeue() -> T? {
         heap.remove()
     }
