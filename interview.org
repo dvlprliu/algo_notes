@@ -1,5 +1,191 @@
 #+TITLE: 面试题整理
+
+* WWDC 笔记
+** Session 416 iOS Memory Deep Dive
+   [[https://developer.apple.com/videos/play/wwdc2018/416/][iOS Memory Deep Dive - WWDC 2018 - Videos - Apple Developer]]  
+*** Why reduce memory 
+    用户可以获得更好的体验
+*** Memory footprint
+**** Pages 
+     堆内存一“页”为单位进行组织，每页内存大小为16KB。Page分为两类：Clean & Dirty。
+     App的内存用量等单页内存大小*页数. 
+
+     被写入过的内存称为“Dirty”，未被写入过的内存称为“Clean”
+
+**** Memory Mapped files
+     存在磁盘中的文件，可以被加载到内存里，只读文件加载到内存后似乎clean的。系统
+     内核管理这些文件何时被加载到内存中。
+     
+**** Typical app memory profile
+     [ Dirty | Compressed | Clean ]
+
+***** Dirty
+      被App写入的内存称为Dirty
+      * 所有在堆上的对象
+      * 解码的Image Buffer
+      * Frameworks
+        * _Data
+        * _DATA_DIRTY
+      
+***** Clean
+      能够被换页的内存称为Clean的
+      * Memory mapped files
+        * Image
+        * Data blob
+      * Frameworks
+        * __Data_CONST
+        * 
+
+***** Compressed Memory
+      iOS系统没有传统的Disk Swap机制，而是使用内存压缩机制。内存压缩器会：
+      * 压缩未被访问的内存页
+      * 解压缩要被访问的内存页
+
+      例如在堆中有一个NSDictionary对象，占了3页内存，如果一段时间没有访问该对象，
+      那么该对象 会被压缩到只占一页内存。一段时间后该对象再次被访问，那么该对象
+      会被加压缩。
+
+***** Memory warnings
+      * 收到内存警告不一定是因为自己的App引起的
+      * 因为内存压缩机制的存在，释放内存不一定就能解决内存警告问题。
+      * Prefer policy change over cache purging
+
+      例如堆中有一个NSDictionary对象，占了3页内存，因为长时间不访问，已经被压缩
+      到1页内存，如果这时我们收到内存警告，而去清除这个对象的所有元素，那么该对
+      象首先会被解压，然后清除对象，最后仍然是占用一页内存。所以从最终效果上来看，
+      清理操作并没有收益。
+
+***** Caching
+      * CPU和内存间的权衡，如果所有东西都做缓存，那么很快就会将内存用尽。
+      * 要牢记内存压缩机制的存在。
+      * 合理利用NSCache而非一直用NSDicationary，NSCache提供线程安全的内存缓存，
+        而且因为是可以分区的（partiable），所以在低内存机型上表现更好。
+
+***** Footprint
+      在讨论内存的footprint是，一般是在讨论Dirty和compressed内存。
+      
+      * Footprint的限制因机型而异。
+      * App的内存用量可以很高。
+      * Extensions的内存用量限制较小。
+
+      如果App超出了内存使用限制会收到 *EXC_RESOURCE_EXCEPTION* 异常。
+*** Tools for profiling footprint
+**** Xcode memory guage
+**** Instruments 
+     * Allocation
+     * Leaks
+     * VM Tracker
+     * Virtual memory trace
+**** Xcode Memory Debugger
+     Xcode Memory Debugger可以检查对象之间的引用关系，底层使用了memgraph类型的文
+     件，我们可以导出该文件，通过其他的命令行工具使用该文件来排查内存相关的问题。
+     
+**** 命令行工具
+
+***** vmmap
+      显示进程创建的虚拟内存块
+      #+BEGIN_SRC shell
+        vmmap App.memgraph
+        vmmap --summary App.memgraph
+        vmmap -pages App.memgraph | grep '.dylib' | awk '{ sum += $6 } END { print "Total Dirty Pages: " sum } '
+      #+END_SRC
+ 
+***** leaks
+      显示那些被创建了，但是未被引用的内存（泄漏的内存）
+      #+BEGIN_SRC shell
+        leaks App.memgraph
+      #+END_SRC
+
+***** heap
+      显示在堆上创建的内存，可以非常方便的检查堆上占内存最大的对象，以及谁创建了
+      该对象。
+      #+BEGIN_SRC shell
+        heap App.memgraph
+        heap App.memgraph -sortBySize
+        heap App.memgraph -addresses all | <classes-pattern>
+      #+END_SRC
+
+***** malloc_history
+      显示内存回溯，需要打开scheme的malloc stack选项。
+      #+BEGIN_SRC shell
+        malloc_history App.memgraph [address]
+     #+END_SRC
+
+
+***** which tool to pick
+      | creation       | Reference | Size        |
+      |----------------+-----------+-------------|
+      | malloc_history | leaks     | vmmap, heap |
+
+*** Images
+    图片占用的内存是由图片的分辨率决定的，而不是图片文件的大小。例如一张图片的分
+    辨率为：2048px * 1536px，文件大小为590k，那么它占用的内存并不是590kb，而是
+    2048px * 1536px * 4 bytes per pixel = 10MB。
+    
+**** 渲染流程
+     Load -> Decode -> Render
+     
+***** Load
+      首先，操作系统会将这个文件加载进内存，590k
+
+***** Decode
+      然后，为了图片可以被正确渲染，系统会对图片文件进行解码，10MB
+
+***** Render
+      最后交给GPU进行渲染
+
+**** 图片渲染格式
+***** SRGB
+      * 每个像素占4位，红绿蓝个占一位，透明通道占一位。
+      * 全色彩图片。
+***** Wide format
+      * 8 bytes per pixel
+      * super accurate colors
+      * Only useful with wide color displays
+      * Wide color capture cameras
+        iPhone 7, iPhone 8, iPhone X, iPad Pro 10.5", iPad Pro 13"
+***** Luminance and alpha 8 format
+      * 2 bytes per pixel
+      * Single-color images and alpha
+      * Metal shaders
+***** Alpha 8 Format
+      * One byte per pixel
+      * Useful for monochrome images
+        - Masks
+        - Emoji-free text
+      * 75 percent smaller than SRGB
+
+**** 如何选择图片格式
+     让系统进行选择
+     * 不再使用 *UIGraphicsBeginImageContextWithOptions*
+       - 使用该API会选择使用SRGB格式
+     * 使用 *UIGraphicsImageRenderer*
+       - iOS10引入
+       - 在iOS12环境下，自动选择最合适的渲染格式
+
+**** Downsampling
+     当我们需要展示一张图片的缩略图的时候，我们需要对我们的图片进行“下采样”，这
+     个时候最好不实用UIImage进行，而是使用ImageIO库。
+     
+     * 使用UIImage进行sizing和resizing成本很高
+       - 需要现将原始图片加载入内存
+       - 内部坐标系转换非常昂贵
+     * ImageIO
+       - can read image sizes and metadata informationg without dirtying memory
+       - can resize images at cost of image only
+*** Optimizing when in background
+    及时卸载掉看不到的大型资源，例如一个页面展示了一张很大的图片，即使我们退回到
+    桌面，这张图片依然是加载在内存里的，我们可以在退出到后台时将这张大图片卸载掉，
+    当再次回到这个页面的时候重新加载该图片。这样可以降低App的内存使用。
+**** App的生命周期
+     * UIApplicationWillEnterForeground
+     * UIApplicationDidEnterBackground
+     * 只作用于当前展示在屏幕上的视图
+**** ViewController的生命周期
+     * 利用 viewWillAppear 和 viewDidDisAppear
 * iOS系统相关
+** Core Animation
+*** anchor points
 ** iOS图片内存分析
    [[https://juejin.im/post/5b1a7c2c5188257d5a30c820][WWDC2018 图像最佳实践 - 掘金]] 
    [[https://developer.apple.com/videos/play/wwdc2018/219/][Image and Graphics Best Practices - WWDC 2018 - Videos - Apple Developer]] 
@@ -24,7 +210,7 @@
 **** 耗电因素
      电量消耗主要来自于这几个方面
      * CPU，电量的主要消耗方
-     * Device wake 设被唤醒
+     * Device wake 设备唤醒
      * Netword 网络
      * Graphics animations, and video
      * Location 更新位置
@@ -225,11 +411,160 @@
 
 **** VoIP最佳实践
      
-** 启动优化                                                            :优化:
-   [[https://juejin.im/post/5e701ed5e51d4526e91f6916][iOS基于二进制重排的启动优化 - 掘金]] 
-   [[http://yulingtianxia.com/blog/2016/10/30/Optimizing-App-Startup-Time/][优化 App 的启动时间 | yulingtianxia's blog]]  
-   [[https://juejin.im/post/5d8776b0e51d4561af16dddf][iOS启动速度优化之道 - 掘金]] 
-   [[https://tech.meituan.com/2018/12/06/waimai-ios-optimizing-startup.html][美团外卖iOS App冷启动治理 - 美团技术团队]] 
+** 启动过程及其优化
+*** dyld2
+    1. 加载dyld到App进程
+    2. 加载动态库（包括所依赖的所有动态库）
+    3. Rebase
+    4. Bind
+    5. 初始化Objective-C Runtime
+    6. 其他初始化代码
+**** 加载动态库
+     dyld会首先读取mach-o文件的Header和load commands。接着就知道了这个可执行文件
+     依赖的动态库，然后递归的加载这些动态库，直到所有动态库加载完毕。
+     
+     可以通过MachOView或者otool查看文件所依赖的动态库。
+**** Rebase & Bind
+***** 为什么需要Rebase
+      Rebase和Bind主要都是为了解决指针应用问题。App使用两种技术保证安全：ASLR和Code Sign
+****** ASLR
+       全称Address space layout randomization，“地址空间布局随机化”。App被启动的
+       时候，程序会被映射逻辑的空间地址空间，这个逻辑空间地址空间有一个起始地址，
+       ASLR技术使得这个起始地址是完全随机的。如果是固定了，就很容易通过其实地址+
+       偏移量找到函数的地址。
+****** Code Sign
+       在进行Code Sign的时候，加密hash不是对整个文件做计算，而是针对每一个Page。
+       这就保证了dyld的进行加载的时候，可以对每一个Page进行独立的验证。
+
+**** Objective-C
+     objc是动态语言，所以在执行main函数之前，需要把类的信息注册一个全局的Table中。
+     同时objc支持Category，在初始化的时候也会把Category的方法注册到对应的类中。
+**** Initializer
+     初始化的部分，主要包括
+     * +load方法
+     * C/C++的静态初始化对象和 __attribute__((constructor))标记的方法
+
+*** dyld3
+    dyld3是对dyld2的升级优化，dyld2是在程序进程内执行的，只有当程序被启动的时候，
+    dyld2才能开始执行任务。
+
+    dyld3则是将一部分任务安排在了程序下载安装和更新的时候去执行，这些任务包括：
+    * 分析 Mach-o Header
+    * 分析依赖的动态库
+    * 查找需要Rebase & Bind之类的符号
+    * 把上诉结果写入缓存
+
+    这样，在启动的时候，就可以直接从缓存中读取数据，加快加载速度。
+
+*** 启动优化                                                           :优化:
+    [[https://easeapi.com/blog/blog/83-ios13-dyld3.html][iOS 13中dyld 3的改进和优化 - 大伟不是戴维]] 
+    [[https://allegro.tech/2018/05/Static-linking-vs-dyld3.html][Static linking vs dyld3 · allegro.tech]] 
+    [[https://juejin.im/post/5e701ed5e51d4526e91f6916][iOS基于二进制重排的启动优化 - 掘金]] 
+    [[https://medium.com/@michael.eisel/improving-app-performance-with-order-files-c7fff549907f][Improving App Performance with Order Files - Michael Eisel - Medium]] 
+    [[http://yulingtianxia.com/blog/2016/10/30/Optimizing-App-Startup-Time/][优化 App 的启动时间 | yulingtianxia's blog]]  
+    [[https://juejin.im/post/5d8776b0e51d4561af16dddf][iOS启动速度优化之道 - 掘金]] 
+    [[https://tech.meituan.com/2018/12/06/waimai-ios-optimizing-startup.html][美团外卖iOS App冷启动治理 - 美团技术团队]] 
+    [[http://yulingtianxia.com/blog/2019/09/01/App-Order-Files/][App 二进制文件重排已经被玩坏了 | yulingtianxia's blog]]
+    
+**** 热启动和冷启动
+     如果启动过App，这个时候所需要的数据仍然在缓存中，再次启动的时候称为热启动。
+     如果刚刚打开设备，然后启动App，则称为冷启动。
+
+     一般优化启动速度以优化冷启动速度为主。启动时间小于400ms是最佳的，因为从点击
+     图标到lanuch screen，到lanuch screen消失这段时间是400ms。启动时间不可以大于
+     20s，否则会被系统杀掉。
+
+     在xcode中，我们可以通过设置环境变量来查看各个启动阶段的时间。
+     “DYLD_PRINT_STATISTICS”和“DYLD_PRINT_STATISTICS_DETAILS”
+
+**** 优化启动时间
+     启动时间可以定义为：从点击图标，到第一个界面展示出来所消耗的时间。
+
+     以main函数作为界线，启动时间包含了两部分，main函数之前和main函数执行完到第
+     一个界面完全展示出来。 所以优化可以从这两部分下手，瓶颈一般都出现在自己代码
+     里。
+
+***** main函数之前
+      main函数之前是iOS系统的工作。方案更具有通用性。
+      
+****** dyld
+       启动第一步是加载动态库，瓶颈主要在内嵌的动态库，这一步提升的效率的关键是
+       减少动态库的使用。
+       
+       可以对动态库进行合并。公司内部有一些粒度比较小的私有pod，通过对这些私有
+       pod进行合并，提高加载速度。
+
+****** Rebase & Bind & Objective-C Runtime
+
+****** 二进制重排
+
+***** main函数之后
+      从main函数开始执行到第一个页面展示出来，一般需要这几样事情：
+      * 执行AppDelegate的代理方法，
+      * 初始化UIWindow，初始化基础的UIViewController
+      * 获取数据展示给用户
+
+****** UIViewController
+      
+****** AppDelegate
+       我们通常会在AppDelegate里进行初始化工作，主要包括：
+       * didFinishLaunchingWithOptions
+       * applicationDidBecomeActive
+
+       这里初始化的核心思想就是能延迟加载的就延迟加载，不能延迟加载的尽量放到后
+       台执行。
+
+       这些工作可以分为几类：
+       * 第三方SDK的初始化，比如Crash统计，分享之类，可以等到第一次调用再初始化。
+       * 初始化某些基础服务
+       * 启动相关日志
+       * 业务方初始化
+
+       ！如何对启动项进行治理可以参考[[https://tech.meituan.com/2018/12/06/waimai-ios-optimizing-startup.html][美团的方案]] 
+       
+**** 二进制重排
+     
+***** 理论基础
+      物理内存和进程之间存在虚拟内存，虚拟内存按页进行管理，当进程访问虚拟内存的
+      page而对应的物理内存却不存在的时候，会触发缺页中断Page Fault，然后操作系统
+      会分配物理内存，有需要的话会从磁盘mmap读入数据。如果是通过App Store分发的
+      App，一个Page Fault还需要进行签名验证，所以一次Page Fault非常耗时。
+
+***** 优化思路
+      优化思路就很简单明了：尽量减少Page Fault的次数。将需要在启动时就调用的函数
+      放在同一页，减少Page Fault。
+
+***** 可行性
+      Xcode提供了支持，可以Linking阶段提供一个Orderfile用于描述符号的排列顺序，
+      objc源码就采用了二进制重排的优化策略。
+
+***** 怎么做
+      要对二进制进行重排，就要知道app启动阶段都调用了那些函数，方法。然后将这些
+      函数/方法组织成一个orderfile，配置在xcode上。
+      
+      如何知道app启动阶段都调用那些函数，大体上有两种方式：
+      1. Method hook
+      2. clang 插桩
+
+****** Method hook
+       要hook的包括oc消息，c/c++函数调用，block调用，swift方法调用。
+       
+******* 如何hook oc调用
+        [[https://github.com/facebook/fishhook][GitHub - facebook/fishhook]]
+        
+******* 如何hook c/c++调用
+
+******* 如何hook block调用
+        [[https://github.com/yulingtianxia/BlockHook][GitHub - yulingtianxia/BlockHook]] 
+        
+******* 如何hook swift调用
+      
+****** clang插桩
+       [[https://clang.llvm.org/docs/SanitizerCoverage.html][SanitizerCoverage — Clang 11 documentation]] 
+       
+       [[https://github.com/yulingtianxia/AppOrderFiles][一键接入方案 - AppOrderFiles]] 
+
+***** 总结
 ** 计时相关
 *** 造成NSTimer可能不准确的原因
 **** NSTimer和Runloop
@@ -411,11 +746,17 @@
        染信息叫个OpenGL ES / Metal 进行渲染。
        
        GPU的工作流程
-** anchor points
 ** TODO Bitcode
    bitcode是编译后程序的中间表现，包含Bitcode的app上传到App Store Connect之后，
    会在AppStore上被重新编译和链接。包含bitcode的app可以在不提交新版本app的情况下，
    被AppStore重新优化。
+** 静态库和动态库
+   [[https://juejin.im/post/5b1f1d3a6fb9a01e6e2baded][iOS动态库的使用 - 掘金]]   
+   库是用来共享程序代码的，分为动态库和静态库。
+   
+   静态库：链接时完整的拷贝至可执行文件中，被多次使用就多份拷贝。
+   动态库：链接时不能复制，程序运行时由系统加载到内存，供程序调用，系统只加载一
+   次，多个程序共用，节省内存。
 * 调试相关
 ** Address Santitizer的原理和使用
    [[https://easeapi.com/blog/blog/84-address-sanitizer.html][Address Sanitizer的原理和使用 - 大伟不是戴维]] 
@@ -479,6 +820,7 @@
 
 * 语言相关
 ** Objective-C
+*** TODO 编译管线 
 *** TODO catagory和extension的实现原理
     [[http://www.cocoachina.com/articles/19163][Category VS Extension 原理详解]] 
 *** Runtime
@@ -1095,6 +1437,46 @@
 *** TODO load和initialize方法
 *** JSPatch的实现原理
     [[https://github.com/bang590/JSPatch/wiki/JSPatch-%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3][JSPatch 实现原理详解 · bang590/JSPatch Wiki · GitHub]] 
+*** id instancetype void*的区别
+    [[https://juejin.im/entry/588022572f301e00697c8756][iOS instancetype 和 id 区别详解 - iOS - 掘金]] 
+    [[https://stackoverflow.com/questions/1304176/objective-c-difference-between-id-and-void][Objective-C: difference between id and void * - Stack Overflow]] 
+    [[https://nshipster.cn/instancetype/][instancetype - NSHipster]]
+    * ~void *~ 指向任意内存，无类型，内容未知。
+    * ~id~ 指向类型未知的oc对象
+    * ~instancetype~ 指向类型未知的oc对象，只能生命在方法返回值类型中
+**** 关联返回类型和非关联返回类型
+***** 关联返回类型：
+      在Cocoa的命名规则中，满足如下规则的方法：
+      1. 类方法中，以alloc或new开头
+      2. 实例方法中，以autorelease，init或self开头
+      会返回一个方法所在类类型的对象，这些方法就被称为“关联返回类型的方法”。
+***** 非关联返回类型：
+      在不满足关联返回类型的规则，比如通过一个类方法创建一个实例，得到的返回类型
+      就和声明的类型一样，例如
+      #+BEGIN_SRC objc
+        @interface UIView
+        + (id)view;
+        @end
+
+        [UIView view]; //返回id类型
+      #+END_SRC
+      
+      调用view方法就返回一个id类型，如果我们使用instancetype作为返回值，就可以得
+      到一个UIView*的类型
+      #+BEGIN_SRC objc
+        @interface UIView
+        + (instancetype)view;
+        @end
+
+        [UIView view]; // 返回 UIView* 类型
+      #+END_SRC
+**** id类型和instancetype的区别
+     * id在编译的时候不能判断对象的真实类型，instancetype可以在编译期判断对象的真
+       实类型
+     * 如果一个init方法返回类型声明为instancetype，将返回值赋给其他类型编译器会
+       报警告，id类型则不会。
+     * id可以定义变量，作为返回值，作为参数。instancetype只能定义返回值类型。
+
 ** Swift
 *** TODO enum关联对象是如何实现的 
 *** TODO ABI稳定意味这什么
@@ -1356,7 +1738,7 @@
    * patch
    * delete
    * put
-** HTTP有哪些部分
+** HTTP有哪些部分 
 ** TCP和UDP的区别
    [[https://zhuanlan.zhihu.com/p/24860273][TCP和UDP的区别 - 知乎]]
 *** TCP是可靠的链接
@@ -1411,6 +1793,24 @@
 * 开源代码相关
 ** kingfisher
 ** DatasourceKit
+** fishhook
+   [[https://github.com/facebook/fishhook][GitHub - facebook/fishhook]] 
+** Eureka
+** YYKit
+*** YYCache
+**** 疑问
+     1. 为什么使用CFMutableDictionaryRef
+     2. When to use Core Foundation 
+     3. pthread的使用
+        1. pthread_main_np()方法的功能
+     4. LRU的实现
+     5. DLB_MAX是啥
+     6. hold and release in queue的实现方式。
+     7. 为什么需要releeaseOnMainThread
+**** 结构 
+**** YYMemoryCache
+**** YYDiskCache
+     
 * 算法数据结构相关
   [[file:algorithms.org][数据结构]] 
 * 操作系统相关
@@ -1424,6 +1824,7 @@
    1. 如果共享数据区已满，阻塞生产者继续生产数据放置入内。
    2. 入股共享数据为空的话，阻塞消费者继续消费数据。
 ** 线程池 
+   单线程池 多线程池
 *** 使用线程池的目的
     1. 线程是稀缺资源，不能频繁的创建。
     2. 解耦作用；线程的创建于执行完全分开，方便维护。

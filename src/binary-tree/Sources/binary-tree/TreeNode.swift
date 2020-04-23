@@ -89,7 +89,7 @@ public class TreeNode<Value> {
         var result = [Value]()
         while !stack.isEmpty {
             let top = stack.removeLast()
-            result.insert(top.value, at: 0)
+            result.append(top.value)
             if let left = left {
                 stack.append(left)
             }
@@ -97,7 +97,7 @@ public class TreeNode<Value> {
                 stack.append(right)
             }
         }
-        return result
+        return result.reversed()
     }
 
     static func tree(from valuesInLevelOrder: [Value?]) -> TreeNode<Value>? {
