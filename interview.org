@@ -821,6 +821,9 @@
 * 语言相关
 ** Objective-C
 *** TODO 编译管线 
+*** TODO Hook 技术
+    [[http://yulingtianxia.com/blog/2018/02/28/Hook-Objective-C-Block-with-Libffi/][Hook Objective-C Block with Libffi | yulingtianxia's blog]] 
+    [[http://blog.cnbang.net/tech/3332/][如何动态创建 block – JPBlock 扩展原理详解 « bang’s blog]] 
 *** TODO catagory和extension的实现原理
     [[http://www.cocoachina.com/articles/19163][Category VS Extension 原理详解]] 
 *** Runtime
@@ -1712,11 +1715,108 @@
 **** 生成初始化方法更统一
 **** 单行方法隐式返回
 **** 
+*** 5.2新特性
+**** Key Path 表达式可以作为函数使用
+     [[https://github.com/apple/swift-evolution/blob/master/proposals/0249-key-path-literal-function-expressions.md][SE-0249]]
+     任何可以使用 (Root) -> Value 的地方都可以使用 \Root.value 来进行替换。例如
+     我们有一组User对象
+     #+BEGIN_SRC swift
+       struct User {
+           let name: String
+           let age: UInt
+           let bestFriend: String?
+
+           var canVote: Bool {
+              return age >= 18
+           }
+       }
+
+       let eric = User(name: "Eric Effiong", age: 18, bestFriend: "Otis Milburn")
+       let maeve = User(name: "Maeve Wiley", age: 19, bestFriend: nil)
+       let otis = User(name: "Otis Milburn", age: 17, bestFriend: "Eric Effiong")
+       let users = [eric, maeve, otis]
+
+     #+END_SRC
+     
+     我们要取出所有User的name属性，以前需要这样：
+     #+BEGIN_SRC swift
+       let userNames = users.map { $0.name }
+     #+END_SRC
+     
+     引入SE-0239后，keypath表达式可以作为函数，可以讲上面的语句简化。
+     #+BEGIN_SRC swift
+       let userNames = users.map(\.name)
+     #+END_SRC
+     
+     同样可以过滤出所有可以投票的用户
+     #+BEGIN_SRC swift
+       let voters = users.filter(\.canVote)
+     #+END_SRC
+
+**** Callable values of user-defined nominal types
+     [[https://github.com/apple/swift-evolution/blob/master/proposals/0253-callable.md][SE-0253]]  如果一个值类型实现了`callAsFunction`方法，这个类型不需要遵循任何协
+     议，我们可以直接对这个值进行调用。
+
+     例如一个类型Dice，实现了callAsFunction方法
+     #+BEGIN_SRC swift
+       struct Dice {
+           var lowerBound: Int
+           var upperBound: Int
+
+           func callAsFunction() -> Int {
+               (lowerBound ... upperBound).randomElement()!
+           }
+       }
+     #+END_SRC
+     
+     我们可以这样
+     #+BEGIN_SRC swift
+       let d6 = Dice(lowerBound: 1, upperBound: 6)
+       // callable value
+       let roll = d6()
+     #+END_SRC
+
+     我们可以定义callAsFunction方法，任意多个参数，返回值类型，同时也可以对
+     callAsFunction进行重载。
+     
+**** Subscripts can now declare default arguments
+     下标函数可以定义默认值，在访问数组越界的时候返回。
+     定义：
+     #+BEGIN_SRC swift
+       struct PoliceForce {
+           var officers: [String]
+
+           subscript(index: Int, default default: String = "Unknown") -> String {
+               if index >= 0 && index < officers.count {
+                   return officers[index]
+               } else {
+                   return `default`
+               }
+           }
+       }
+
+       let force = PoliceForces(officers: ["Amy", "Jake", "Rosa", "Terry"])
+       print(force[0]) // outputs Amy
+       print(force[5]) // outputs Unknown
+       print(force[-1, default: "The Vulture"]) // outputs The Vulture
+     #+END_SRC
+
 *** How to contribut to swift 
     [[https://forums.swift.org/t/important-talks-and-articles-for-first-time-swift-contributors/34537][Important talks and articles for first time Swift Contributors - Compiler - S...]] 
+*** Property Wrapper
+    [[https://docs.swift.org/swift-book/LanguageGuide/Properties.html#ID617][Properties — The Swift Programming Language (Swift 5.2)]] 
+    [[https://nshipster.com/propertywrapper/][Swift Property Wrappers - NSHipster]] 
+**** Repos using propertywrapper
+     [[https://github.com/ole/PropertyWrappers][ole/PropertyWrappers]]  
+     [[https://github.com/sunshinejr/SwiftyUserDefaults][sunshinejr/SwiftyUserDefaults]] 
+     [[https://github.com/SvenTiigi/ValidatedPropertyKit][SvenTiigi/ValidatedPropertyKit]] 
+     [[https://github.com/GottaGetSwifty/CodableWrappers][GottaGetSwifty/CodableWrappers]] 
 *** TODO 内存布局
     [[https://academy.realm.io/posts/goto-mike-ash-exploring-swift-memory-layout/][Exploring Swift Memory Layout]] 
     [[https://www.mikeash.com/pyblog/friday-qa-2014-07-18-exploring-swift-memory-layout.html][mikeash.com: Friday Q&A 2014-07-18: Exploring Swift Memory Layout]] 
+*** TODO Function Builder
+    [[https://www.swiftbysundell.com/articles/the-swift-51-features-that-power-swiftuis-api/][The Swift 5.1 features that power SwiftUI’s API | Swift by Sundell]]
+*** TODO dynamicMemberLookup
 * 网络相关
 ** protobuf
 ** TODO POST和GET的区别
@@ -1798,19 +1898,114 @@
 ** Eureka
 ** YYKit
 *** YYCache
-**** 疑问
-     1. 为什么使用CFMutableDictionaryRef
-     2. When to use Core Foundation 
-     3. pthread的使用
-        1. pthread_main_np()方法的功能
-     4. LRU的实现
-     5. DLB_MAX是啥
-     6. hold and release in queue的实现方式。
-     7. 为什么需要releeaseOnMainThread
 **** 结构 
 **** YYMemoryCache
 **** YYDiskCache
-     
+**** YYKVStore
+**** LRU的实现
+***** 什么是LRU
+      LRU属于缓存替策略的一种，即最近最少使用，核心逻辑是:
+      1. 如果此数据已经在缓存中，我们找到该数据，将它动到缓存头部。
+      2. 如果数据没有在缓存中，分为两种情况：
+         - 如果缓存未满，将此节点直接插入到缓存头部
+         - 如果缓存已满，将缓存尾部节点删除，将新的数据插入链表头部。
+
+      YYCache使用LRU缓存置换算法，对缓存进行管理。
+***** 内存LRU
+      在YYMemoryCache中使用双向链表假字典实现了LRU缓存算法。
+****** 主要结构
+       通过一个双向链表结构实现，主要参与者有：
+******* _YYLinkedMapNode
+         #+BEGIN_SRC objc
+           /**
+              A node in linked map.
+              Typically, you should not use this class directly.
+           */
+           @interface _YYLinkedMapNode : NSObject {
+             @package
+             __unsafe_unretained _YYLinkedMapNode *_prev; // retained by dic
+             __unsafe_unretained _YYLinkedMapNode *_next; // retained by dic
+             id _key;
+             id _value;
+             NSUInteger _cost;
+             NSTimeInterval _time;
+           }
+           @end
+        #+END_SRC
+         这里的_prev和_next都被 ~__unsafe_unretained~ 修饰，效果与weak相同，不增
+         加这两个对象的引用计数；如果该对象被释放，指针不会被zero-out，容易造成
+         空指针错误。使用weak的话，当对象被释放需要到全局的weak表中去查，并将所
+         有指针置空，会对效率造成一定影响（微乎其微）。
+
+         因为_prev对象和_next对象都会被LinkedMap的_dic强引用，所以这里使用
+         ~__unsafe_unreatined~ 是安全的。
+         
+******* _YYLinkedMap
+        #+BEGIN_SRC objc
+          /**
+             A linked map used by YYMemoryCache.
+             It's not thread-safe and does not validate the parameters.
+
+             Typically, you should not use this class directly.
+          ,*/
+          @interface _YYLinkedMap : NSObject {
+            @package
+            CFMutableDictionaryRef _dic; // do not set object directly
+            NSUInteger _totalCost;
+            NSUInteger _totalCount;
+            _YYLinkedMapNode *_head; // MRU, do not change it directly
+            _YYLinkedMapNode *_tail; // LRU, do not change it directly
+            BOOL _releaseOnMainThread;
+            BOOL _releaseAsynchronously;
+          }
+        #+END_SRC
+
+        对于LRU缓存，一个常用的优化思路便是使用哈希表，记录每个数据的位置，将缓
+        存访问的时间复杂度降低到O(1)。在YYCache中没有使用NSDictionary而是使用了
+        CoreFoundation提供的CFMutableDictionary，我理解这么做是出于效率的考虑，
+        CoreFoundation提供了更为底层的C API，不需要经历objc runtime发消息的流程，
+        能够使效率更加高效。带来的影响就是需要更为小心的维护内存，避免内存泄漏。
+
+        在__YYLinkedMap中还有两个属性_head和tail，他们都是LinkedNode，_head表示
+        最近使用的一个缓存，_tail表示最早使用的内存。当缓存已满，我按照LRU核心逻
+        辑，将_tail删除，将新数据插入头部即可。因此，LinkedMap提供以下方法：
+
+        - insertNodeAtHead
+        - bringNodeToHead
+        - removeNode
+        - removeTailNode
+        - removeAll
+
+***** 磁盘LRU
+****** 文件
+****** 数据库
+
+***** 疑问
+      1. 为什么采用不一样的互斥锁实现方案，YYMemoryCache使用用pthread，DiskCache
+         使用semaphore。 
+         [[https://github.com/ibireme/YYCache/issues/50][ibireme/YYCache#50 锁的选择]] 
+**** 线程的安全的处理
+     YYMmeoryCache依赖YYLinkedMap进行缓存管理，其中LinkedMap并未保证线程安全。是
+     YYMemoryCahce保证了线程安全。
+
+     线程同步机制使用pthead实现，声明pthread_mutex_t类型实例变量_lock。_lock在类
+     初始化的时候被创建，在类被释放的时候被销毁。每个函数内部使用
+     pthread_mutex_lock和pthread_mutex_unlock加锁和解锁，保证在多线程环境下对_lru访
+     问的线程安全。
+**** 疑问
+     1.为什么使用CFMutableDictionaryRef
+        * C接口，直接调用函数，绕过运行时系统，效率更高。
+     2. When to use Core Foundation 
+     3. pthread的使用
+        1. pthread_main_np()方法的功能
+           * 判断当前是否在主线程
+     4. DLB_MAX是啥
+        * 浮点数的最大值
+     5. hold and release in queue的实现方式。
+     6. 为什么需要releeaseOnMainThread
+        * 缓存里可能存了UIKit对象，主要在主线程访问这些对象。
+     7. 内存缓存中为何异步得进行释放，会不会导致问题，如何解决？
+*** YYDispatchQueuePool
 * 算法数据结构相关
   [[file:algorithms.org][数据结构]] 
 * 操作系统相关
@@ -1861,6 +2056,19 @@
 *** 信号
 *** 共享内存通信
 *** 套接字通信
+** POSIX thread
+   Pthread定义了一套C语言的类型、函数与常量，它以pthread.h头文件和一个线程库实现。
+   
+   Pthreads API中大致共有100个函数调用，都以ptread_开头，可以分为四类：
+   * 线程管理：例如创建线程，等待线程，查询线程状态
+   * 互斥锁：创建，销毁，锁定，解锁，属性设置
+   * 条件变量：创建，摧毁，等待，通知，设置与查询属性等操作
+   * 使用了互斥锁的线程时间同步管理
+   [[https://zh.wikipedia.org/wiki/POSIX%E7%BA%BF%E7%A8%8B][POSIX线程 - 维基百科，自由的百科全书]] 
+*** 什么是POSIX
+    POSIX全称可移植操作系统接口（Portable Operating Sysytem Interface），是IEEE
+    为要在各种UNIX操作系统上运行软件，而定义API的一些列相互关联的标准总称。
+** Linux线程模型
 * 设计模式
 ** MVC
 ** MVVM
