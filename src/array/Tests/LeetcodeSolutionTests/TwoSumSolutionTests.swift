@@ -8,7 +8,7 @@
 import XCTest
 @testable import leetcode_solutions
 
-final class SolutionTests: XCTestCase {
+final class TwoSumSolutionTests: XCTestCase {
 
     override func setUpWithError() throws {
     }
