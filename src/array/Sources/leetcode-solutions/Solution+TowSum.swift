@@ -43,29 +43,26 @@ extension Solution {
     enum TwoSum {
         /// 遍历的解法
         static func brutalForce(_ nums: [Int], _ target: Int) -> [Int] {
-            if nums.count < 1 {
-                return []
-            }
-            var i = 0
-            var j = 0
-            for num in nums {
-                let sub = target - num
-                j = i + 1
-                for other in nums[j..<nums.count] {
-                    if other == sub {
+            for i in 0..<nums.count {
+                let sub = target - nums[i]
+                for j in i+1 ..< nums.count {
+                    if nums[j] == sub {
                         return [i, j]
                     }
-                    j += 1
                 }
-                i += 1
             }
             return []
         }
 
+        /// 找到两数之和
+        ///
+        /// 暴力解法
         static func brutalForceV2(_ nums: [Int], _ target: Int) -> [Int] {
             for i in 0..<nums.count {
-                for j in (i + 1)..<nums.count {
-                    if nums[i] + nums[j] == target { return [i, j] }
+                for j in i + 1 ..< nums.count {
+                    if nums[i] + nums[j] == target {
+                        return [i, j]
+                    }
                 }
             }
             return []
@@ -76,14 +73,11 @@ extension Solution {
         /// 这个实现是在方法执行之初就建立完整的映射表，可能会消耗更多的内存
         static func usingHashMap(_ nums: [Int], _ target: Int) -> [Int] {
             let pairs = nums.enumerated().map { ($1, $0) }
-            let dic = [Int: Int](pairs, uniquingKeysWith: { $1 })
-            for (index, num) in nums.enumerated() {
-                let sub = target - num
-                if index == dic[sub] {
-                    continue
-                }
-                if let other = dic[sub] {
-                    return [index, other]
+            let mapping = [Int: Int](pairs, uniquingKeysWith: { $1 })
+            for i in 0..<nums.count {
+                let sub = target - nums[i]
+                if let other = mapping[sub], other != i {
+                    return [i, other]
                 }
             }
             return []
@@ -94,9 +88,9 @@ extension Solution {
         /// 这个实现是在遍历的过程中建立映射表，可以优化内存的使用
         static func usingHashMapV2(_ nums: [Int], _ target: Int) -> [Int] {
             var mapping = [Int: Int]()
-            for i in 0..<nums.count {
+            for i in 0 ..< nums.count {
                 let sub = target - nums[i]
-                if let other = mapping[sub] {
+                if let other = mapping[sub], i != other {
                     return [i, other]
                 }
                 mapping[nums[i]] = i
