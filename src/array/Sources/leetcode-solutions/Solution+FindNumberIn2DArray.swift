@@ -17,18 +17,35 @@ extension Solution {
     enum FindNumberIn2DArray {
         typealias Solution = ([[Int]], Int) -> Bool
 
-        static func linearSearch(_ matrix: [[Int]], target: Int) -> Bool {
+        static func linearSearchFromTopRight(_ matrix: [[Int]], target: Int) -> Bool {
             if matrix.isEmpty { return false }
             var i = 0
             var j = matrix[0].count - 1
             while i < matrix.count && j >= 0 {
-                if target == matrix[i][j] {
+                if matrix[i][j] == target {
                     return true
                 }
                 if target < matrix[i][j] {
                     j -= 1
                 } else {
                     i += 1
+                }
+            }
+            return false
+        }
+
+        static func linearSearchFromBottomLeft(_ matrix: [[Int]], target: Int) -> Bool {
+            if matrix.isEmpty { return false }
+            var i = matrix.count - 1
+            var j = 0
+            while i >= 0 && j < matrix[0].count {
+                if matrix[i][j] == target {
+                    return true
+                }
+                if target < matrix[i][j] {
+                    i -= 1
+                } else {
+                    j += 1
                 }
             }
             return false

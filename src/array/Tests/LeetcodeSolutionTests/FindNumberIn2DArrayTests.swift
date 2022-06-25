@@ -15,8 +15,12 @@ final class FindNumberIn2DArrayTests: XCTestCase {
     override func tearDownWithError() throws {
     }
 
-    func testLinearSearch() {
-        testUsing(solution: Solution.FindNumberIn2DArray.linearSearch)
+    func testLinearSearchFromTopRight() {
+        testUsing(solution: Solution.FindNumberIn2DArray.linearSearchFromTopRight)
+    }
+
+    func testLinearSearchFromBottomLeft() {
+        testUsing(solution: Solution.FindNumberIn2DArray.linearSearchFromBottomLeft)
     }
 
     func testFindByRow() {
