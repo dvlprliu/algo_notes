@@ -9,7 +9,8 @@ final class bsearchTests: XCTestCase {
         ]
         cases.forEach { (case) in
             let (nums, target, ans) = `case`
-            XCTAssertEqual(BinarySearch().bsearchIterate(nums, target), ans)
+            let result = BinarySearch().bsearchIterate(nums, target)
+            XCTAssertEqual(result, ans, "expect \(ans), but get \(result)")
         }
     }
 
