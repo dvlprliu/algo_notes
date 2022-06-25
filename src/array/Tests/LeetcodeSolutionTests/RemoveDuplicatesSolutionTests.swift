@@ -20,6 +20,10 @@ final class RemoveDuplicatesSolutionTests: XCTestCase {
         testUsing(solution: Solution.RemoveDuplicates.brutal)
     }
 
+    func testBrutalWithWhere() {
+        testUsing(solution: Solution.RemoveDuplicates.brutalWithWhere)
+    }
+
     func testBrutalOptimal() {
         testUsing(solution: Solution.RemoveDuplicates.brutalOptimal)
     }

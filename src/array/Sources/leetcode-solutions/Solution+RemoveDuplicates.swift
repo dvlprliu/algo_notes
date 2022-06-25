@@ -36,6 +36,16 @@ extension Solution {
             return i + 1
         }
 
+        static func brutalWithWhere(_ nums: inout [Int]) -> Int {
+            if nums.isEmpty { return 0 }
+            var i = 0
+            for j in 1 ..< nums.count where nums[i] != nums[j] {
+                i += 1
+                nums[i] = nums[j]
+            }
+            return i + 1
+        }
+
         /// 移除重复元素
         ///
         /// 基本解法与brutal的接发相同，针对有序且无重复元素的case进行优化
