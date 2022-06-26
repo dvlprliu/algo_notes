@@ -20,14 +20,15 @@ final class ListNodeTests: XCTestCase {
     }
 
     func testLast() {
-        let last = list.last()
-        XCTAssertEqual(last, 3)
-
-        let emptyList: ListNode? = nil
-        XCTAssertNil(emptyList?.last())
-
         let singleNode = ListNode(value: 1)
         XCTAssertEqual(singleNode.last(), 1)
     }
 
+    func testInitFromArray() {
+        let empty: [Int] = []
+        XCTAssertNil(ListNode(vals: empty))
+
+        let arrayList: ListNode = [1, 2, 3]
+        XCTAssertEqual(arrayList.last(), 3)
+    }
 }

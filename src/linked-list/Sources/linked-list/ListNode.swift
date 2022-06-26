@@ -7,12 +7,24 @@
 
 import Foundation
 
-public class ListNode {
+public class ListNode: ExpressibleByArrayLiteral {
     public var val: Int
     public var next: ListNode?
     init(value: Int, next: ListNode? = nil) {
         self.val = value
         self.next = next
+    }
+
+    init?(vals: [Int]) {
+        if vals.isEmpty { return nil }
+        self.val = vals[0]
+        self.next = ListNode(vals: Array(vals[1..<vals.count]))
+    }
+
+    public required init(arrayLiteral elements: Int...) {
+        if elements.isEmpty { fatalError() }
+        self.val = elements[0]
+        self.next = ListNode(vals: Array(elements[1...]))
     }
 
     public func last() -> Int? {
@@ -24,6 +36,4 @@ public class ListNode {
         }
         return dummy?.val
     }
-
-    
 }
