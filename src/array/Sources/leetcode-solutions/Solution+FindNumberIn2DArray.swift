@@ -22,13 +22,13 @@ extension Solution {
             var i = 0
             var j = matrix[0].count - 1
             while i < matrix.count && j >= 0 {
-                if matrix[i][j] == target {
+                if target == matrix[i][j] {
                     return true
                 }
-                if target < matrix[i][j] {
-                    j -= 1
-                } else {
+                if target > matrix[i][j] {
                     i += 1
+                } else {
+                    j -= 1
                 }
             }
             return false
@@ -39,22 +39,36 @@ extension Solution {
             var i = matrix.count - 1
             var j = 0
             while i >= 0 && j < matrix[0].count {
-                if matrix[i][j] == target {
+                if target == matrix[i][j] {
                     return true
-                }
-                if target < matrix[i][j] {
-                    i -= 1
-                } else {
+                } else if target > matrix[i][j] {
                     j += 1
+                } else {
+                    i -= 1
                 }
             }
             return false
         }
 
-        static func findByRow(_ matric: [[Int]], target: Int) -> Bool {
-            if matric.isEmpty { return false }
-            for row in matric {
+        /// 朴素解，按行查找是否包含目标元素
+        ///
+        /// 因为每行的元素都是升序的，所以每行可以使用二分法的进行查找。
+        /// 时间复杂度O(nlogn)
+        static func findByRow(_ matrix: [[Int]], target: Int) -> Bool {
+            if matrix.isEmpty { return false }
+            for row in matrix {
                 if findElementInRow(row, target: target) {
+                    return true
+                }
+            }
+            return false
+        }
+
+        /// 朴素解，使用标准库方法进行查找
+        static func findByRowUsingStd(_ matrix: [[Int]], target: Int) -> Bool {
+            if matrix.isEmpty { return false }
+            for row in matrix {
+                if row.contains(target) {
                     return true
                 }
             }
@@ -65,7 +79,7 @@ extension Solution {
             if row.isEmpty { return false }
             var low = 0
             var high = row.count - 1
-            while low <= high {
+            while high >= low {
                 let mid = low + (high - low) / 2
                 if row[mid] == target {
                     return true

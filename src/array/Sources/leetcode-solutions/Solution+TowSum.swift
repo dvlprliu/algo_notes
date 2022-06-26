@@ -43,10 +43,9 @@ extension Solution {
     enum TwoSum {
         /// 遍历的解法
         static func brutalForce(_ nums: [Int], _ target: Int) -> [Int] {
-            for i in 0..<nums.count {
-                let sub = target - nums[i]
+            for i in 0 ..< nums.count {
                 for j in i+1 ..< nums.count {
-                    if nums[j] == sub {
+                    if nums[i] + nums[j] == target {
                         return [i, j]
                     }
                 }
@@ -58,9 +57,10 @@ extension Solution {
         ///
         /// 暴力解法
         static func brutalForceV2(_ nums: [Int], _ target: Int) -> [Int] {
-            for i in 0..<nums.count {
-                for j in i + 1 ..< nums.count {
-                    if nums[i] + nums[j] == target {
+            for i in 0 ..< nums.count {
+                let sub = target - nums[i]
+                for j in i+1 ..< nums.count {
+                    if nums[j] == sub {
                         return [i, j]
                     }
                 }
@@ -72,11 +72,12 @@ extension Solution {
         ///
         /// 这个实现是在方法执行之初就建立完整的映射表，可能会消耗更多的内存
         static func usingHashMap(_ nums: [Int], _ target: Int) -> [Int] {
-            let pairs = nums.enumerated().map { ($1, $0) }
-            let mapping = [Int: Int](pairs, uniquingKeysWith: { $1 })
-            for i in 0..<nums.count {
+            // 建立哈希表
+            let pair = nums.enumerated().map { ($1, $0) }
+            let hash = [Int: Int](pair) { $1 }
+            for i in 0 ..< nums.count {
                 let sub = target - nums[i]
-                if let other = mapping[sub], other != i {
+                if let other = hash[sub], other != i {
                     return [i, other]
                 }
             }
@@ -87,13 +88,13 @@ extension Solution {
         ///
         /// 这个实现是在遍历的过程中建立映射表，可以优化内存的使用
         static func usingHashMapV2(_ nums: [Int], _ target: Int) -> [Int] {
-            var mapping = [Int: Int]()
+            var hash = [Int: Int]()
             for i in 0 ..< nums.count {
                 let sub = target - nums[i]
-                if let other = mapping[sub], i != other {
+                if let other = hash[sub], other != i {
                     return [i, other]
                 }
-                mapping[nums[i]] = i
+                hash[nums[i]] = i
             }
             return []
         }
