@@ -12,8 +12,7 @@ extension Solution {
         typealias Solution = (Int) -> Int
         
         static func byDynamicProgramming(_ n: Int) -> Int {
-            if n < 2 { return 0 }
-            if n == 2 { return 1 }
+            if n < 3 { return n - 1 }
             var dp = [Int](repeating: 0, count: n + 1)
             dp[2] = 1
             for i in 3 ... n {
@@ -30,17 +29,6 @@ extension Solution {
             if b == 0 { return Int(truncating: NSDecimalNumber(decimal: pow(3, a))) }
             if b == 1 { return Int(truncating: NSDecimalNumber(decimal: pow(3, a - 1) * 4)) }
             return Int(truncating: NSDecimalNumber(decimal: pow(3, a) * 2))
-        }
-        
-        static func byMathmaicII(_ n: Int) -> Int {
-            if n <= 3 { return n - 1 }
-            var res: UInt64 = 1
-            var n = n
-            while n > 4 {
-                res = res * 3
-                n -= 1
-            }
-            return res * n
         }
         
         static func byFindInLookupTable(_ n: Int) -> Int {
