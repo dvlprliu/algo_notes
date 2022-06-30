@@ -6,9 +6,12 @@
 //
 
 import XCTest
+import leetcode_testcase
 @testable import dynamic_programming
 
-class CuttingRopeTests: XCTestCase {
+class CuttingRopeTests: LeetcodeTestCase<Int, Int> {
+
+    typealias RopeCase = Case<Int, Int>
 
     override func setUpWithError() throws {
     }
@@ -17,19 +20,19 @@ class CuttingRopeTests: XCTestCase {
     }
 
     func testUsingDynamicProgramming() {
-        testUsing(solution: Solution.CuttingRope.byDynamicProgramming)
+        test(using: Solution.CuttingRope.byDynamicProgramming)
     }
     
     func testUsingMathmatic() {
-        testUsing(solution: Solution.CuttingRope.byMathmatic)
+        test(using: Solution.CuttingRope.byMathmatic)
     }
     
     func testLookupTable() {
-        testUsing(solution: Solution.CuttingRope.byFindInLookupTable)
+        test(using: Solution.CuttingRope.byFindInLookupTable)
     }
-    
-    func testUsing(solution: Solution.CuttingRope.Solution, file: StaticString = #filePath, line: UInt = #line) {
-        let cases = [
+
+    override func cases() -> [Case<Int, Int>] {
+        [
             (2, 1),
             (3, 2),
             (4, 4),
@@ -88,20 +91,9 @@ class CuttingRopeTests: XCTestCase {
             (57, 1162261467),
             (58, 1549681956),
         ]
-        
-        for c in cases {
-            test(expect: c.1, parameter: c.0, solution: solution, file: file, line: line)
-        }
+            .map {
+                RopeCase(parameter: $0.0, expect: $0.1)
+            }
     }
-    
-    func test<Expect: Equatable, Parameter>(
-        expect: Expect,
-        parameter: Parameter,
-        solution: (Parameter) -> Expect,
-        file: StaticString = #filePath,
-        line: UInt = #line
-    ) {
-        let result = solution(parameter)
-        XCTAssertEqual(result, expect, file: file, line: line)
-    }
+
 }

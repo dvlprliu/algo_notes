@@ -7,7 +7,7 @@
 
 import XCTest
 
-open class LeetcodeTestCase: XCTestCase {
+open class LeetcodeTestCase<Parameter, Expect: Equatable>: XCTestCase {
 
     open override func setUpWithError() throws {
     }
@@ -15,11 +15,21 @@ open class LeetcodeTestCase: XCTestCase {
     open override func tearDownWithError() throws {
     }
 
-    open func cases<Parameter, Expect: Equatable>() -> [Case<Parameter, Expect>] {
+    open func cases() -> [Case<Parameter, Expect>] {
         return []
     }
 
-    open func test<Parameter, Expect: Equatable>(
+    open func test(
+        using solution: (Parameter) -> Expect,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        for c in self.cases() as [Case<Parameter, Expect>] {
+            test(c, solution: solution, message: nil, file: file, line: line)
+        }
+    }
+
+    open func test(
         cases: [Case<Parameter, Expect>],
         using solution: (Parameter) -> Expect,
         file: StaticString = #filePath,
@@ -30,7 +40,7 @@ open class LeetcodeTestCase: XCTestCase {
         }
     }
 
-    open func test<Parameter, Expect: Equatable>(
+    open func test(
         _ case: Case<Parameter, Expect>,
         solution: (Parameter) -> Expect,
         message: String?,

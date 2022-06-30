@@ -7,8 +7,13 @@
 
 import Foundation
 
-open struct Case<Parameter, Expect: Equatable> {
-    open let parameter: Parameter
-    open let expect: Expect
+public struct Case<Parameter, Expect: Equatable> {
+    public let parameter: Parameter
+    public let expect: Expect
+
+    public init(parameter: Parameter, expect: Expect) {
+        self.parameter = parameter
+        self.expect = expect
+    }
 }
 
