@@ -37,3 +37,8 @@ public class ListNode: ExpressibleByArrayLiteral {
         return dummy?.val
     }
 }
+
+extension ListNode {
+
+   
+}

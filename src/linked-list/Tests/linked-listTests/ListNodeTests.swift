@@ -31,4 +31,14 @@ final class ListNodeTests: XCTestCase {
         let arrayList: ListNode = [1, 2, 3]
         XCTAssertEqual(arrayList.last(), 3)
     }
+
+    func testReverseList() {
+        let list: ListNode = [1, 2, 3, 4, 5]
+        let reversed = Solution.ReverseList.byIterate(list)
+    
+    }
+
+    func test(using: (ListNode?) -> ListNode?) {
+
+    }
 }

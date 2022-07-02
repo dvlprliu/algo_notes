@@ -28,4 +28,46 @@ class Solution {
             return recursive(head.next) + [head.val]
         }
     }
+
+    enum ReverseList {
+        static func byIterate(_ head: ListNode?) -> ListNode? {
+            if head == nil || head?.next == nil { return head }
+            var pre: ListNode? = nil
+            var next = head?.next
+            var head = head
+            while let newHead = head {
+                let newNext = next?.next
+                next?.next = head
+                head?.next = pre
+                pre = newHead
+                head = next
+                next = newNext
+            }
+            return pre
+        }
+
+        static func byIterateII(_ head: ListNode?) -> ListNode? {
+            if head == nil || head?.next == nil {
+                return head
+            }
+            var nodes: (cur: ListNode?, pre: ListNode?) = (head, nil)
+            while nodes.cur != nil {
+                let tmp = nodes.cur?.next
+                nodes.cur?.next = nodes.pre
+                nodes.pre = nodes.cur
+                nodes.cur = tmp
+            }
+            return nodes.pre
+        }
+
+        static func recursive(_ head: ListNode?) -> ListNode? {
+            func recur(_ cur: ListNode?, pre: ListNode?) -> ListNode? {
+                if cur == nil { return pre }
+                let res = recur(cur?.next, pre: cur)
+                cur?.next = pre
+                return res
+            }
+            return recur(head, pre: nil)
+        }
+    }
 }
