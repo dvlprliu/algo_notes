@@ -1,6 +1,6 @@
 //
 //  SolutionTests.swift
-//  
+//
 //
 //  Created by zhzh liu on 2022/6/25.
 //
@@ -44,16 +44,44 @@ final class SolutionTests: XCTestCase {
             ([1], [1]),
         ]
         for c in cases {
-            let result = solution(c.param)
-            let expect = c.exp
-            var check: (ListNode?, ListNode?) = (result, expect)
-            while let r = check.0, let e = check.1 {
-                XCTAssertEqual(r.val, e.val, file: file, line: line)
-                check.0 = check.0?.next
-                check.1 = check.1?.next
-            }
-            XCTAssertTrue(check.0 == nil && check.1 == nil,  file: file, line: line)
+            XCTAssertListEqual(solution(c.param), c.exp, file: file, line: line)
         }
     }
 
+    func testMergeList() {
+        testMergeList(using: Solution.MergeTwoLists.byIterate)
+        testMergeList(using: Solution.MergeTwoLists.byRecursive)
+    }
+
+    func testMergeList(using solution: Solution.MergeTwoLists.Solution, file: StaticString = #filePath, line: UInt = #line ) {
+        let cases: [(param: ([Int], [Int]), expect: [Int])] = [
+            (([1,2,4], [1,3,4]), [1,1,2,3,4,4]),
+            (([1,2,3], []), [1,2,3]),
+            (([], [1,2,3]), [1,2,3]),
+            (([1], [1,2,3]), [1,1,2,3]),
+        ]
+        for c in cases {
+            let l1 = c.param.0.asListNode()
+            let l2 = c.param.1.asListNode()
+            let expect = c.expect.asListNode()
+            XCTAssertListEqual(solution(l1, l2), expect, file: file, line: line)
+        }
+    }
+
+
+    func XCTAssertListEqual(
+        _ list1: @autoclosure () -> ListNode?,
+        _ list2: @autoclosure () -> ListNode?,
+        _ message: @autoclosure () -> String = "",
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        var check: (result: ListNode?, expect: ListNode?) = (list1(), list2())
+        while let r = check.result, let e = check.expect {
+            XCTAssertEqual(r.val, e.val, message(), file: file, line: line)
+            check.0 = check.0?.next
+            check.1 = check.1?.next
+        }
+        XCTAssertTrue(check.0 == nil && check.1 == nil, message(), file: file, line: line)
+    }
 }

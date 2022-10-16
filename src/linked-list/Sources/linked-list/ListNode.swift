@@ -38,7 +38,8 @@ public class ListNode: ExpressibleByArrayLiteral {
     }
 }
 
-extension ListNode {
-
-   
+extension Array where Element == Int {
+    func asListNode() -> ListNode? {
+        ListNode(vals: self)
+    }
 }
