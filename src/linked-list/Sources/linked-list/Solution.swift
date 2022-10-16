@@ -50,14 +50,15 @@ class Solution {
             if head == nil || head?.next == nil {
                 return head
             }
-            var nodes: (cur: ListNode?, pre: ListNode?) = (head, nil)
-            while nodes.cur != nil {
-                let tmp = nodes.cur?.next
-                nodes.cur?.next = nodes.pre
-                nodes.pre = nodes.cur
-                nodes.cur = tmp
+            var pre: ListNode? = nil
+            var cur = head
+            while cur != nil {
+                let next = cur?.next
+                cur?.next = pre
+                pre = cur
+                cur = next
             }
-            return nodes.pre
+            return pre
         }
 
         static func recursive(_ head: ListNode?) -> ListNode? {
@@ -68,6 +69,16 @@ class Solution {
                 return res
             }
             return recur(head, pre: nil)
+        }
+        
+        static func recursiveSimple(_ head: ListNode?) -> ListNode? {
+            if head == nil || head?.next == nil {
+                return head
+            }
+            let ret = recursiveSimple(head?.next)
+            head?.next?.next = head
+            head?.next = nil
+            return ret
         }
     }
 }

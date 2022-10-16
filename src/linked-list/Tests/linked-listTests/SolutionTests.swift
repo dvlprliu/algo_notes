@@ -34,10 +34,12 @@ final class SolutionTests: XCTestCase {
         testReverseList(using: Solution.ReverseList.byIterate)
         testReverseList(using: Solution.ReverseList.byIterateII)
         testReverseList(using: Solution.ReverseList.recursive)
+        testReverseList(using: Solution.ReverseList.recursiveSimple)
     }
 
     func testReverseList(using solution: (ListNode?) -> ListNode?, file: StaticString = #filePath, line: UInt = #line) {
         let cases: [(param: ListNode?, exp: ListNode?)] = [
+            ([1,2,3,4,5], [5,4,3,2,1]),
             ([1,2,3], [3,2,1]),
             ([1], [1]),
         ]

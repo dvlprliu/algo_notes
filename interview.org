@@ -410,7 +410,7 @@
 ****** 获得后台会话的通知
 
 **** VoIP最佳实践
-     
+** TODO 包体积优化
 ** 启动过程及其优化
 *** dyld2
     1. 加载dyld到App进程
@@ -685,7 +685,7 @@
 
     响应顺序: subviews -> view -> RootViewController -> UIWindow -> UIApplication
     -> UIApplicationDelegate
-** TODO ViewController的生命周期
+** ViewController的生命周期
 ** 进程间通信
 *** URLScheme
 *** Keychain
@@ -868,13 +868,13 @@
      
 ***** 消息机制 
       当调用oc对象的一个方法，实际是向这个对象发送一个消息，例如 [receiver
-      message]实际上是调用了 objc_messageSend(receiver, selector, arg1...)方法。
+      message]实际上是调用了 objc_msgeSend(receiver, selector, arg1...)方法。
       消息功能为动态绑定做了很多必要的工作：
       1. 通过selector在消息接收者的class里选择方法实现 method_imp
       2. 调用方法实现，和参数一起传递给接收对象
       3. 传递方法实现返回值
 
-      为了让编译器编译时，消息机制与类结构关联上，每个累结构里添加了两个基本元素
+      为了让编译器编译时，消息机制与类结构关联上，每个类结构里添加了两个基本元素
       1. 指向父类的指针 isa
       2. 类调度表，通过selector方法名在dispatch table里匹配对应的方法地址
 
@@ -1011,7 +1011,7 @@
       
 ****** Source0 
        只包含了一个回调，只能由应用发起和处理。使用时需要调用
-       CFRunLoopSourceSignal(source)，将这个souorce标记为待处理，然后手动嗲用
+       CFRunLoopSourceSignal(source)，将这个souorce标记为待处理，然后手动调用
        CFRunloopWakeUp(runloop) 来唤醒runloop，让其处理这个事件
 
 ****** Source1
@@ -1200,6 +1200,7 @@
     [[https://blog.sunnyxx.com/2014/10/15/behind-autorelease/][黑幕背后的Autorelease · sunnyxx的技术博客]] 
     [[https://draveness.me/autoreleasepool][自动释放池的前世今生 ---- 深入解析 autoreleasepool]] 
     [[https://medium.com/swift2go/autoreleasepool-uses-in-2019-swift-9e8fd7b1cd3f][@autoreleasepool uses in 2019 Swift - Swift2Go - Medium]]
+    [[https://juejin.cn/post/6844904197003935751][iOS底层学习 - 内存管理之Autoreleasepool - 掘金]] 
     
 **** TODO AutoreleasePool 何时释放
      没有手动加AutoreleasePool的情况下，Autorelease对象是在当前的runloop结束时释
@@ -1496,7 +1497,7 @@
 *** 值类型写时复制
     * 只有当一个值发生写入行为时,才会有复制行为
     * 在结构提内部用一个引用类型来存储实际数据,再不进行写入操作的普通传递过程中,
-      都是将内部引用计数+1, 在进行写入操作是,对内部的引用做一次copy操作来存储新
+      都是将内部引用计数+1, 在进行写入操作时,对内部的引用做一次copy操作来存储新
       的数据,防止和之前引用产生意外的数据共享.
     * 有一个 isKnownUniquelyReferenced 函数,它能检查一个类的实例是不是唯一的引用,如
       果是,我们就不需要为结构体进行复制,如果不是,说明对象被不同的结构体共享,这是
@@ -1819,7 +1820,7 @@
 *** TODO dynamicMemberLookup
 * 网络相关
 ** protobuf
-** TODO POST和GET的区别
+** POST和GET的区别
    [[https://blog.csdn.net/qq_26360877/article/details/70665820][get和post的区别]] 
    * get把请求的数据放在url上，即http协议头上。post把数据放在http包内
    * get请求的数据最大是2k，限制实际上取决与浏览器, 12k；post理论上没有限制
@@ -1855,7 +1856,7 @@
 *** 多路复用
 *** 服务器推送
 *** 头部压缩
-** TODO cookie和session的区别 
+** cookie和session的区别 
 *** 作用
     * cookie 采用的客户端的会话状态的一种存储机制。他是服务器在本地机器上存储的
       小短文本或者是内存中的一段数据，并随着每个请求发送至同一个服务器。

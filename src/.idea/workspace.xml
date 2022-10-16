@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="b8566d1b-ecc3-43b6-90fe-8cc557890e10" name="变更" comment="">
+      <change afterPath="$PROJECT_DIR$/array/Sources/leetcode-solutions/Solution+RemoveElement.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/array/Tests/LeetcodeSolutionTests/RemoveElementTests.swift" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../interview.org" beforeDir="false" afterPath="$PROJECT_DIR$/../interview.org" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/array/Tests/LeetcodeSolutionTests/ArrayTestCase.swift" beforeDir="false" afterPath="$PROJECT_DIR$/array/Tests/LeetcodeSolutionTests/ArrayTestCase.swift" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/linked-list/Sources/linked-list/Solution.swift" beforeDir="false" afterPath="$PROJECT_DIR$/linked-list/Sources/linked-list/Solution.swift" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/linked-list/Tests/linked-listTests/SolutionTests.swift" beforeDir="false" afterPath="$PROJECT_DIR$/linked-list/Tests/linked-listTests/SolutionTests.swift" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectApplicationVersion">
+    <option name="ide" value="AppCode" />
+    <option name="majorVersion" value="2022" />
+    <option name="minorVersion" value="2.3" />
+  </component>
+  <component name="ProjectId" id="2GB9qKI5B6jZ3toqB0WW1wEx8TQ" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.cidr.known.project.marker": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "cidr.known.project.marker": "true",
+    "last_opened_file_path": "/Users/liuzhuangzhuang01/workroot/Github/algo_notes/src/Algo.xcworkspace"
+  }
+}]]></component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="应用程序级" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="默认任务">
+      <changelist id="b8566d1b-ecc3-43b6-90fe-8cc557890e10" name="变更" comment="" />
+      <created>1665851300388</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1665851300388</updated>
+      <workItem from="1665851302454" duration="7000" />
+    </task>
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>
