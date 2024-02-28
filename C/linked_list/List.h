@@ -2,10 +2,10 @@
 
 typedef struct node_t* Nodeptr;
 
-typedef struct node_t {
+struct node_t {
     int val;
     struct node_t *next;
-} Node;
+};
 
 typedef Nodeptr List;
 typedef Nodeptr Position;

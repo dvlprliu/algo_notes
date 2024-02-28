@@ -902,7 +902,7 @@
       里包含和初始消息和参数。
 
       我们可以使用forwardInvocation方法来处理消息转发。
- 
+
      [[https://www.jianshu.com/p/b34ecdcf8c25][OC运行时机制Runtime(二)：探索Runtime的消息转发机制 - 简书]]
 ***** 调用机制
       OC中，调用方法叫做发送消息，基本形式为 ~[receiver message]~ ; 编译器会将上
@@ -951,7 +951,7 @@
       * ObjectAssociation
 
 ****** AssociationsManager
-       内部只有一个 AssociationsHashmap单例，使用自旋锁保证同时只有一个线程能够
+       内部只有一个 AssociationsHashMap单例，使用自旋锁保证同时只有一个线程能够
        访问AssociationsHashMap，保证线程安全。在初始化的时候加锁，析构的时候解锁。
 
 ****** ObjectAssociation 关联对象的实际存储结构
@@ -977,7 +977,7 @@
 **** Runloop 概念
      runloop实际上是一个对象，这个对象管理了其需要处理的事件和消息，并提供一个入
      口函数来指向上面的事件循环的逻辑。线程执行了这个函数后，就会一直处于这个函
-     数内部，“接收消息-等待-处理-”的循环中，这道这个循环结束 （比如传入quit的消
+     数内部，“接收消息-等待-处理-”的循环中，直到这个循环结束 （比如传入quit的消
      息），函数返回。
 
      OSX/iOS系统中提供了两个这样的对象：NSRunloop 和 CFRunLoopRef。CFRunloopRef
@@ -1008,7 +1008,7 @@
 
 ***** CFRunLoopSourceRef 
       是事件产生的地方，Source有两个版本，Source0和Source1
-      
+
 ****** Source0 
        只包含了一个回调，只能由应用发起和处理。使用时需要调用
        CFRunLoopSourceSignal(source)，将这个souorce标记为待处理，然后手动调用
@@ -1057,12 +1057,12 @@
 **** Runloop的内部逻辑
      Runloop是这样一个函数，其内部是一个do-while循环。当你调用CFRunLoopRun()时，
      线程就会一直停留在这个循环里；直到超时或被手动停止，该函数才会返回。
-     
+
 **** 苹果用 RunLoop 实现的功能
      App启动后，系统默认注册了5个mode：
      1. kCFRunLoopDefaultMode： App的默认mode，通常主线程是在这个mode下运行的。
      2. UITrackingRunLoopMode： 界面跟踪 mode， 用于scrollview追踪触摸滑动，保证
-        洁面滑动谁不受其他mode影响。
+        页面滑动时不受其他mode影响。
      3. UIInitializationRunLoopMode：在刚启动App时进入的第一个mode，启动完成后不
         再使用。
      4. GSEventReceiveRunLoopMode：接收系统事件内部mode，通常用不到
@@ -1082,7 +1082,7 @@
       来释放自动释放池.这个observer的优先级最低,保证其释放池发生在其他所有回调之
       后.
 
-      在主线程执行代码,通过写在诸如时间回调、timer回调内.这些回调会被runloop穿件
+      在主线程执行代码,通过写在诸如时间回调、timer回调内.这些回调会被runloop创建
       好的AutoreleasePool环绕着,所以不会出现内存泄漏,开发者也不必创建pool了.
 
 ***** 事件响应
@@ -1091,10 +1091,10 @@
 
       当一个硬件事件(触摸/锁屏/晃动等)发生后,首先有IOKit.framework生成一个
       IOHIDEvent事件并有SpringBoard接收.SprintBoard只接收按键,触摸,加速,接近传感
-      器等集中Event,随后用哪个mach port转发给需要的app进程.随后苹果注册那个
+      器等几种Event,随后用哪个mach port转发给需要的app进程.随后苹果注册那个
       source1事件触发回调,并调用_UIApplicationHandleEventQueue() 进行应用内部的
       分发.
-      
+
       _UIApplicationHandleEventQueue() 会把IOHIDEvent处理并包装成UIEvent进行处理
       或分发,其中包括识别 UIGesture/处理屏幕旋转/发送给UIWindow等,通常事件比如
       UIButton点击,touchesBegin/Move/End/Cancel事件都在在这个回调中完成的.
@@ -1232,7 +1232,9 @@
        的 形式组合而成。
      * AutoreleasePool是按线程一一对应的
      * AutoreleasePoolPage的每个对象会开辟4096字节的内存，除了自己本身的实例变量
-       所占的空间，剩下的空间全部用来存储autorelease对象。
+       所占的空间，剩下的空间全部用来存储autorelease对象。值为PAGE_MAX_SIZE,4096
+       个字节,其中56个字节用来存储自己的变量，剩下的4040个字节用来存储要释放的对象，也
+       就是最多505个对象。
      * ~id *next~ 指针作为游标指向栈顶最新add进来的autorelease对象的下一个位置
      * 一个AutorealsePoolPage被占满时，会新建一个AutoReleasePoolPage对象，连接链
        表，后来的autorelease对象加入的新的page中。
@@ -1249,7 +1251,7 @@
      objc_autoreleasePoolPop(哨兵）作为入参：
      1. 根据传入的哨兵对象地址找到哨兵对象所处的page
      2. 在当前page中，将晚于哨兵对象插入的所有autorelease对象都发送一次 release
-        消息，并向会移动指针，可以向前跨越若干个page，直到哨兵所在的位置。
+        消息，并向后移动指针，可以向前跨越若干个page，直到哨兵所在的位置。
     
 **** POOL_SENTIEL 对象
      上边提到的哨兵对象，实际上是POOL_SENTIEL对象，值为nil，定义如下：
@@ -1269,10 +1271,10 @@
          return 0;
        }
      #+END_SRC
-     
-     当objc_atoreleasePoolPop调用是，会想自动释放池中的对象发送release消息，直到
+
+     当objc_atoreleasePoolPop调用是，会向自动释放池中的对象发送release消息，直到
      第一个POOL_SENTIEL。 
-     
+
 *** Associated Objects的实现原理                                       :原理:
     [[关联对象]] 
     [[http://blog.leichunfeng.com/blog/2015/06/26/objective-c-associated-objects-implementation-principle/][Objective-C Associated Objects 的实现原理 - 雷纯锋的技术博客]] 
@@ -1351,7 +1353,7 @@
     * (__bridge_transfer CFType) expression
     * (__bridge type) expression
     CF对象必须使用CFRetain和CFRelease进行内存管理。
-    使用OBJC对象和CF对象相互转换的时候，必须让编译器直到，到底由谁来负责释放对象，
+    使用OBJC对象和CF对象相互转换的时候，必须让编译器知道到底由谁来负责释放对象，
     是否交给ARC处理，只有正确的处理，才能避免内存泄漏和过度释放导致的程序崩溃。
 **** __bridge_retain
      __bridge_retain等同于 CFBridgeRetain()。
@@ -1496,7 +1498,7 @@
       此引用的值已存在的实体本身而不是拷贝.
 *** 值类型写时复制
     * 只有当一个值发生写入行为时,才会有复制行为
-    * 在结构提内部用一个引用类型来存储实际数据,再不进行写入操作的普通传递过程中,
+    * 在结构内部用一个引用类型来存储实际数据,再不进行写入操作的普通传递过程中,
       都是将内部引用计数+1, 在进行写入操作时,对内部的引用做一次copy操作来存储新
       的数据,防止和之前引用产生意外的数据共享.
     * 有一个 isKnownUniquelyReferenced 函数,它能检查一个类的实例是不是唯一的引用,如
@@ -1555,7 +1557,7 @@
       误,defer块里的代码都会执行.
     * defer块中的代码,会在当前作用于结束前调用,每当一个作用域结束就进行该作用的
       defer执行.
-    * 如果一个作用域里有多个defer,他们将按相反的顺序执行,可以他们当作一个栈.
+    * 如果一个作用域里有多个defer,他们将按相反的顺序执行(先进后出),可以他们当作一个栈.
     #+BEGIN_SRC swift
       func doSomethingFile{
           openDirectory()
@@ -1703,7 +1705,7 @@
      任何一个对象都有一个指向side table的指针，这个side table也存在一个指针指回
      到该对象，side table可以存储其他的一些信息，比如关联对象。
 
-     出事状态下，对象的第一个字（word）存储类信息，接下来的一个字存储引用计数。
+     初始状态下，对象的第一个字（word）存储类信息，接下来的一个字存储引用计数。
      当这个对象需要side table的时候，第二个字就会被替换为指向side table的指针，
      同时引用计数的信息也会存进side table。这两种情况通过设置该字中的一个比特位
      来进行区分。
@@ -1849,6 +1851,17 @@
 *** 流模式与数据报模式
 *** TCP保证过数据正确性，UDP可能丢包
 *** TCP保证数据舜秀，UDP不保证
+** TCP建立连接的过程
+*** 三次握手建立连接
+**** 第一次握手(SYN=1, seq=x):
+客户端发送一个 TCP 的 SYN 标志位置1的包，指明客户端打算连接的服务器的端口，以及初始序号 X,保存在包头的序列号(Sequence Number)字段里。
+发送完毕后，客户端进入 SYN_SEND 状态。
+**** 第二次握手(SYN=1, ACK=1, seq=y, ACKnum=x+1):
+服务器发回确认包(ACK)应答。即 SYN 标志位和 ACK 标志位均为1。服务器端选择自己 ISN 序列号，放到 Seq 域里，同时将确认序号(Acknowledgement Number)设置为客户的 ISN 加1，即X+1。 发送完毕后，服务器端进入 SYN_RCVD 状态。
+**** 第三次握手(ACK=1，ACKnum=y+1)
+客户端再次发送确认包(ACK)，SYN 标志位为0，ACK 标志位为1，并且把服务器发来 ACK 的序号字段+1，放在确定字段中发送给对方，并且在数据段放写ISN的+1
+发送完毕后，客户端进入 ESTABLISHED 状态，当服务器端接收到这个包时，也进入 ESTABLISHED 状态，TCP 握手结束。
+*** 四次挥手关闭连接
 ** 七层模型
 ** HTTP2的特性
    [[https://zhuanlan.zhihu.com/p/26559480][一文读懂 HTTP/2 特性 - 知乎]] 
