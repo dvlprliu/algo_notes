@@ -667,7 +667,7 @@
     用户点击屏幕 -> UIApplication -> UIWindow.hitTest:withEvent: ->
     View.hitTest:withEvent. hitTest方法调用pointInside:withEvent:方法来确定那个
     子视图应该响应事件。
- 
+
 *** 修改响应链
     可以通过重写next属性修改响应链。UIKit中next的实现
     * UIView， 如果这个view是ViewController的根视图，那么他的next是
@@ -931,7 +931,7 @@
             struct objc_method_list *instance_methods                OBJC2_UNAVAILABLE;
             struct objc_method_list *class_methods                   OBJC2_UNAVAILABLE;
             struct objc_protocol_list *protocols                     OBJC2_UNAVAILABLE;
-        }  
+        }
      #+END_SRC
      包含分类名字，类名，实例方法列表，类方法列表，实现的协议列表。一般分类不能
      直接添加属性，但可以使用运行时动态的给类添加属性。又叫关联对象。
@@ -1041,7 +1041,7 @@
          CFMutableArrayRef _timers;    // Array
          ...
        };
- 
+
        struct __CFRunLoop {
          CFMutableSetRef _commonModes;     // Set
          CFMutableSetRef _commonModeItems; // Set<Source/Observer/Timer>
@@ -1178,7 +1178,7 @@
 **** Weak原理分析
 ***** weak指针帮我们干了啥
       程序运行时将弱引用存入到一个hash表中，当对象要销毁的时候，哈希函数根据对
-      象地址找到索引，然后从哈希表中去除对象对应的弱指针集合，挨个清空。 
+      象地址找到索引，然后从哈希表中去除对象对应的弱指针集合，挨个清空。
 ***** 调用栈
       #+BEGIN_SRC text
         -(void)dealloc ->
@@ -1222,7 +1222,7 @@
          magic_t const magic;
          id *next;
          pthread_t const thread;
-         AutoreleasePoolPage * const parent;
+         AutoreleasePoolPage *const parent;
          AutoreleasePoolPage *child;
          uint32_t const depth;
          uint32_t hiwat;
@@ -1283,9 +1283,9 @@
     [[https://halfrost.com/ios_block/][深入研究 Block 捕获外部变量和 __block 实现原理]] 
     OC中有三种block
     * _NSConcreteGlobalBlock 没有外界变量或只用到全局变量、静态变量的
-      block为_NSConcreteGlobalBlock，声明周期从创建到应用程序结束。
+      block为_NSConcreteGlobalBlock，生命周期从创建到应用程序结束。
     * _NSConcreteStackBlock 只有外部局部变量、成员变量，且没有强指针引用的block
-      都是StackBlock。StackBlock的声明周期由系统控制，一旦返回之后，就被销毁了。
+      都是StackBlock。StackBlock的生命周期由系统控制，一旦返回之后，就被销毁了。
     * _NSConcreteMallocBlock 有强指针引用或copy修饰的成员属性引用的block会被复制
       一份到堆中成为MallocBlock，没有强指针引用即销毁，生命周期有程序员控制
 **** 实现方式 
@@ -1436,7 +1436,7 @@
      #+END_SRC
 *** 原子操作是否是线程安全的
     [[http://liuduo.me/2018/02/08/objective-c-atomic/][Objective-C 原子属性 | Knowledge Library]] 
-    
+
     原子操作不是线程安全的，自保证setter和getter存取方法的线程安全，并不保证整个
     对象的线程安全。例如一个数组对象，如果一个线程循环的读取内存，另一个线程循环
     的写内存，就肯定会产生内存问题。最好的方法还是加锁。
@@ -1466,7 +1466,7 @@
 
         [UIView view]; //返回id类型
       #+END_SRC
-      
+
       调用view方法就返回一个id类型，如果我们使用instancetype作为返回值，就可以得
       到一个UIView*的类型
       #+BEGIN_SRC objc
@@ -1486,6 +1486,12 @@
 ** Swift
 *** TODO enum关联对象是如何实现的 
 *** TODO ABI稳定意味这什么
+**** ABI是什么
+**** 稳定的含义
+     Swift5.0版本开始ABI稳定，意味着编译后的Swift程序能够与操作系统和其他库的二进制接口以一种稳定的方式进行交互
+     而不受Swift版本更新的影响。
+**** 稳定之后的影响
+
 *** TODO 编译pipeline
     [[https://forums.swift.org/t/what-should-i-learn-if-i-want-to-contribute-to-the-swift-compiler/18144/5?u=dvlprliu][Compiling pipeline]]
 *** 性能优化                                                           :优化:
@@ -1740,17 +1746,17 @@
        let users = [eric, maeve, otis]
 
      #+END_SRC
-     
+
      我们要取出所有User的name属性，以前需要这样：
      #+BEGIN_SRC swift
        let userNames = users.map { $0.name }
      #+END_SRC
-     
+
      引入SE-0239后，keypath表达式可以作为函数，可以讲上面的语句简化。
      #+BEGIN_SRC swift
        let userNames = users.map(\.name)
      #+END_SRC
-     
+
      同样可以过滤出所有可以投票的用户
      #+BEGIN_SRC swift
        let voters = users.filter(\.canVote)
@@ -1771,7 +1777,7 @@
            }
        }
      #+END_SRC
-     
+
      我们可以这样
      #+BEGIN_SRC swift
        let d6 = Dice(lowerBound: 1, upperBound: 6)
@@ -1781,7 +1787,7 @@
 
      我们可以定义callAsFunction方法，任意多个参数，返回值类型，同时也可以对
      callAsFunction进行重载。
-     
+
 **** Subscripts can now declare default arguments
      下标函数可以定义默认值，在访问数组越界的时候返回。
      定义：
@@ -1953,7 +1959,7 @@
 
          因为_prev对象和_next对象都会被LinkedMap的_dic强引用，所以这里使用
          ~__unsafe_unreatined~ 是安全的。
-         
+
 ******* _YYLinkedMap
         #+BEGIN_SRC objc
           /**
@@ -1976,7 +1982,7 @@
 
         对于LRU缓存，一个常用的优化思路便是使用哈希表，记录每个数据的位置，将缓
         存访问的时间复杂度降低到O(1)。在YYCache中没有使用NSDictionary而是使用了
-        CoreFoundation提供的CFMutableDictionary，我理解这么做是出于效率的考虑，
+        CoreFoundation提供的CFMutableDictionary，这么做是出于效率的考虑，
         CoreFoundation提供了更为底层的C API，不需要经历objc runtime发消息的流程，
         能够使效率更加高效。带来的影响就是需要更为小心的维护内存，避免内存泄漏。
 
@@ -2028,12 +2034,12 @@
    生产者消费者问题，实际上主要是包含两个类现场，一种是生产者线程用于生产数据，
    另一种是消费者线程，用于消费数据，为了解耦生产者和消费者的关系，通常会采用共
    享的数据区域，就像一个仓库，生产者生产数据之后直接放置在共享数据区中，并不关
-   系消费者的行为。消费中只需从共享数据区中区获取数据，就不再需要关心生产者的行
+   心消费者的行为。消费中只需从共享数据区中区获取数据，就不再需要关心生产者的行
    为。共享数据区中应该具备这样线程间并发写作的功能。
    1. 如果共享数据区已满，阻塞生产者继续生产数据放置入内。
-   2. 入股共享数据为空的话，阻塞消费者继续消费数据。
-** 线程池 
-   单线程池 多线程池
+   2. 如果共享数据为空的话，阻塞消费者继续消费数据。
+** 线程池
+   单线程池多线程池
 *** 使用线程池的目的
     1. 线程是稀缺资源，不能频繁的创建。
     2. 解耦作用；线程的创建于执行完全分开，方便维护。

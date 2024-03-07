@@ -14,6 +14,7 @@ xcuserdata/
 *.xccheckout
 
 ## compatibility with Xcode 3 and earlier (ignoring not required starting Xcode 4)
+.build/*
 build/
 DerivedData/
 *.moved-aside
@@ -33,6 +34,8 @@ DerivedData/
 !*.xcworkspace/contents.xcworkspacedata
 *.xcworkspace/xcuserdata/
 /*.gcno
+
+src/.build/*
 
 ### Xcode Patch ###
 **/xcshareddata/WorkspaceSettings.xcsettings
