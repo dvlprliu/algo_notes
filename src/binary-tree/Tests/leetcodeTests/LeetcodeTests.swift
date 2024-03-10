@@ -38,12 +38,11 @@ class LeetcodeTests: XCTestCase {
             solution.sameTree,
         ]
 
-        testHelper_(cases: cases, methods: methods) { cases, method -> (Bool, Bool) in
-            let c = cases
-            let p = TreeNode.tree(from: cases.value.0)
-            let q = TreeNode.tree(from: cases.value.1)
+        testHelper(cases: cases, methods: methods) { cases, method -> Bool in
+            let p = TreeNode.tree(from: cases.0)
+            let q = TreeNode.tree(from: cases.1)
             let result = method(p, q)
-            return (c.expect, result)
+            return result
         }
     }
 
@@ -59,10 +58,10 @@ class LeetcodeTests: XCTestCase {
             solution.isSymmetric_iterate,
         ]
 
-        testHelper_(cases: cases, methods: methods) { cs, method -> (Bool, Bool) in
-            let tree = TreeNode.tree(from: cs.value)
+        testHelper(cases: cases, methods: methods) { cs, method -> Bool in
+            let tree = TreeNode.tree(from: cs)
             let result = method(tree)
-            return (cs.expect, result)
+            return result
         }
     }
 
@@ -78,44 +77,28 @@ class LeetcodeTests: XCTestCase {
             solution.maxDepth_iterate,
         ]
 
-        testHelper_(cases: cases, methods: methods) { c, method -> (Int, Int) in
-            let input = c.value
-            let output = c.expect
-            let tree = TreeNode.tree(from: input)
-            let resu = method(tree)
-            return (output, resu)
+        testHelper(cases: cases, methods: methods) { input, method -> Int in
+            method(makeTree(input))
         }
     }
 
-    func testHelper_<Input, Output, Method, Value>(
+    func testHelper<Input, Output, Method>(
         cases: [Case<Input, Output>],
         methods: [Method],
         solution: StaticString = #function,
         line: UInt = #line,
         file: StaticString = #file,
-        test: (Case<Input, Output>, Method) -> (expect: Value, result: Value)
-    ) where Value: Equatable {
+        test: (Input, Method) -> Output
+    ) where Output: Equatable {
         for (cidx, cs) in cases.enumerated() {
             for (midx, method) in methods.enumerated() {
-                let (ans, res) = test(cs, method)
-                XCTAssertEqual(ans, res, "solution <\(solution)> failed for case #\(cidx): \(cs) using method #\(midx)", file: file, line: line)
+                let res = test(cs.value, method)
+                XCTAssertEqual(cs.expect, res, "solution <\(solution)> failed for case #\(cidx): \(cs) using method #\(midx)", file: file, line: line)
             }
         }
     }
 
-    func testHelper<Case, Method, Value>(
-        cases: [Case],
-        methods: [Method],
-        solution: StaticString = #function,
-        line: UInt = #line,
-        file: StaticString = #file,
-        test: (Case, Method) -> (expect: Value, result: Value)
-    ) where Value: Equatable {
-        for (cidx, cs) in cases.enumerated() {
-            for (midx, method) in methods.enumerated() {
-                let (ans, res) = test(cs, method)
-                XCTAssertEqual(ans, res, "solution <\(solution)> failed for case #\(cidx): \(cs) using method #\(midx)", file: file, line: line)
-            }
-        }
+    private func makeTree(_ values: [Int?]) -> binary_tree.TreeNode<Int>? {
+        TreeNode.tree(from: values)
     }
 }
