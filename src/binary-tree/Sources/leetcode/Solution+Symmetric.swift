@@ -27,6 +27,7 @@
 //
 // https://leetcode-cn.com/problems/symmetric-tree/
 
+import binary_tree
 import Foundation
 
 extension Solution {

@@ -14,25 +14,22 @@ public class TreeNode<Value> {
 
     init(value: Value) {
         self.value = value
-        self.left = nil
-        self.right = nil
+        left = nil
+        right = nil
     }
 
     func levelOrderTraversel() -> [Value] {
-        var queue = [TreeNode]()
+        var queue = [self]
         var result = [Value]()
-        queue.append(self)
         while !queue.isEmpty {
-            var count = queue.count
-            while count > 0 {
+            while queue.count > 0 {
                 let top = queue.removeFirst()
                 result.append(top.value)
-                count -= 1
-                if let node = top.left {
-                    queue.append(node)
+                if let left = top.left {
+                    queue.append(left)
                 }
-                if let node = top.right {
-                    queue.append(node)
+                if let right = top.right {
+                    queue.append(right)
                 }
             }
         }
@@ -44,6 +41,7 @@ public class TreeNode<Value> {
             + [value]
             + (right?.inorderTraversel_recursive() ?? [])
     }
+
     func inorderTraversel_iterate() -> [Value] {
         var cur: TreeNode? = self
         var stack = [TreeNode]()
@@ -54,7 +52,9 @@ public class TreeNode<Value> {
                 cur = cur?.left
             }
             let top = stack.popLast()
-            if let value = top?.value { result.append(value) }
+            if let value = top?.value {
+                result.append(value)
+            }
             cur = top?.right
         }
         return result
@@ -63,6 +63,7 @@ public class TreeNode<Value> {
     func preorderTraversel_recursive() -> [Value] {
         [value] + (left?.preorderTraversel_recursive() ?? []) + (right?.preorderTraversel_recursive() ?? [])
     }
+
     func preorderTraversel_iterate() -> [Value] {
         var result = [Value]()
         var stack = [self]
@@ -84,6 +85,7 @@ public class TreeNode<Value> {
             + (right?.postorderTraversel_recursive() ?? [])
             + [value]
     }
+
     func postorderTraversel_iterate() -> [Value] {
         var stack = [self]
         var result = [Value]()
@@ -114,16 +116,15 @@ public class TreeNode<Value> {
     }
 
     func map<T>(_ transform: (Value) throws -> T) rethrows -> TreeNode<T>? {
-        func traverseAndMap(_ node: TreeNode<Value>?, _ transform: ((Value) throws -> T)) rethrows -> TreeNode<T>? {
+        func traverseAndMap(_ node: TreeNode<Value>?, _ transform: (Value) throws -> T) rethrows -> TreeNode<T>? {
             guard let node = node else { return nil }
-            let root = TreeNode<T>(value: try transform(node.value))
+            let root = try TreeNode<T>(value: transform(node.value))
             root.left = try traverseAndMap(node.left, transform)
             root.right = try traverseAndMap(node.right, transform)
             return root
         }
         return try traverseAndMap(self, transform)
     }
-
 }
 
 extension TreeNode: CustomStringConvertible where Value: CustomStringConvertible {

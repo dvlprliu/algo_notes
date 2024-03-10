@@ -38,8 +38,8 @@
 //
 // https://leetcode-cn.com/problems/same-tree/
 
-import Foundation
 import binary_tree
+import Foundation
 
 extension Solution {
     func sameTree(_ p: TreeNode?, _ q: TreeNode?) -> Bool {

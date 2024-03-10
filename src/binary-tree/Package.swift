@@ -9,7 +9,8 @@ let package = Package(
         // Products define the executables and libraries produced by a package, and make them visible to other packages.
         .library(
             name: "binary-tree",
-            targets: ["binary-tree"]),
+            targets: ["binary-tree"]
+        ),
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
@@ -20,15 +21,22 @@ let package = Package(
         // Targets can depend on other targets in this package, and on products in packages which this package depends on.
         .target(
             name: "binary-tree",
-            dependencies: []),
+            dependencies: []
+        ),
         .testTarget(
             name: "binary-treeTests",
-            dependencies: ["binary-tree"]),
+            dependencies: ["binary-tree"],
+            path: "Tests/binary-treeTests"
+        ),
         .target(
             name: "leetcode",
-            dependencies: ["binary-tree"]),
+            dependencies: ["binary-tree"],
+            path: "Sources/leetcode"
+        ),
         .testTarget(
             name: "leetcodeTests",
-            dependencies: ["leetcode"]),
+            dependencies: ["binary-tree", "leetcode"],
+            path: "Tests/leetcodeTests"
+        ),
     ]
 )
