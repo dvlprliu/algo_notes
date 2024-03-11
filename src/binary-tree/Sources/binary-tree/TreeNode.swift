@@ -7,7 +7,7 @@
 
 import Foundation
 
-public class TreeNode<Value> {
+public class TreeNode<Value>: ExpressibleByArrayLiteral {
     public let value: Value
     public var left: TreeNode?
     public var right: TreeNode?
@@ -16,6 +16,22 @@ public class TreeNode<Value> {
         self.value = value
         left = nil
         right = nil
+    }
+
+    public required init(arrayLiteral elements: Value...) {
+        if elements.isEmpty { fatalError() }
+        func buildTree(from values: [Value?], idx: Int) -> TreeNode? {
+            if idx >= values.count { return nil }
+            guard let val = values[idx] else { return nil }
+            let root = TreeNode(value: val)
+            root.left = buildTree(from: values, idx: 2 * idx + 1)
+            root.right = buildTree(from: values, idx: 2 * idx + 2)
+            return root
+        }
+        let rootIdx = 0
+        value = elements[rootIdx]
+        left = buildTree(from: elements, idx: 2 * rootIdx + 1)
+        right = buildTree(from: elements, idx: 2 * rootIdx + 2)
     }
 
     func levelOrderTraversel() -> [Value] {

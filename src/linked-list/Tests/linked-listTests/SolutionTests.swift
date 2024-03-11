@@ -5,16 +5,13 @@
 //  Created by zhzh liu on 2022/6/25.
 //
 
-import XCTest
 @testable import linked_list
+import XCTest
 
 final class SolutionTests: XCTestCase {
+    override func setUpWithError() throws {}
 
-    override func setUpWithError() throws {
-    }
-
-    override func tearDownWithError() throws {
-    }
+    override func tearDownWithError() throws {}
 
     func testReversePrint() {
         let list = ListNode(value: 2, next: ListNode(value: 1, next: ListNode(value: 3)))
@@ -39,8 +36,8 @@ final class SolutionTests: XCTestCase {
 
     func testReverseList(using solution: (ListNode?) -> ListNode?, file: StaticString = #filePath, line: UInt = #line) {
         let cases: [(param: ListNode?, exp: ListNode?)] = [
-            ([1,2,3,4,5], [5,4,3,2,1]),
-            ([1,2,3], [3,2,1]),
+            ([1, 2, 3, 4, 5], [5, 4, 3, 2, 1]),
+            ([1, 2, 3], [3, 2, 1]),
             ([1], [1]),
         ]
         for c in cases {
@@ -53,12 +50,12 @@ final class SolutionTests: XCTestCase {
         testMergeList(using: Solution.MergeTwoLists.byRecursive)
     }
 
-    func testMergeList(using solution: Solution.MergeTwoLists.Solution, file: StaticString = #filePath, line: UInt = #line ) {
+    func testMergeList(using solution: Solution.MergeTwoLists.Solution, file: StaticString = #filePath, line: UInt = #line) {
         let cases: [(param: ([Int], [Int]), expect: [Int])] = [
-            (([1,2,4], [1,3,4]), [1,1,2,3,4,4]),
-            (([1,2,3], []), [1,2,3]),
-            (([], [1,2,3]), [1,2,3]),
-            (([1], [1,2,3]), [1,1,2,3]),
+            (([1, 2, 4], [1, 3, 4]), [1, 1, 2, 3, 4, 4]),
+            (([1, 2, 3], []), [1, 2, 3]),
+            (([], [1, 2, 3]), [1, 2, 3]),
+            (([1], [1, 2, 3]), [1, 1, 2, 3]),
         ]
         for c in cases {
             let l1 = c.param.0.asListNode()
@@ -67,7 +64,6 @@ final class SolutionTests: XCTestCase {
             XCTAssertListEqual(solution(l1, l2), expect, file: file, line: line)
         }
     }
-
 
     func XCTAssertListEqual(
         _ list1: @autoclosure () -> ListNode?,
