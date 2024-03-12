@@ -52,6 +52,28 @@ public class TreeNode<Value>: ExpressibleByArrayLiteral {
         return result
     }
 
+    public func levelOrderTraversel_array() -> [[Value]] {
+        var curLvl = [self]
+        var nextLvl = [TreeNode<Value>]()
+        var result = [[value]]
+        while !curLvl.isEmpty {
+            nextLvl = []
+            for node in curLvl {
+                if let left = node.left {
+                    nextLvl.append(left)
+                }
+                if let right = node.right {
+                    nextLvl.append(right)
+                }
+            }
+            if !nextLvl.isEmpty {
+                result.append(nextLvl.map(\.value))
+            }
+            curLvl = nextLvl
+        }
+        return result
+    }
+
     func inorderTraversel_recursive() -> [Value] {
         (left?.inorderTraversel_recursive() ?? [])
             + [value]

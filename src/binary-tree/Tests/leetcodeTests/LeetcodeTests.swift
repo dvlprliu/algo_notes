@@ -46,6 +46,24 @@ class LeetcodeTests: XCTestCase {
         }
     }
 
+    func testLevelOrderTraverselArray() {
+        let solution = Solution()
+        let cases = [
+            ([3, 9, 20, nil, nil, 15, 7], [[3], [9, 20], [15, 7]]),
+            ([1], [[1]]),
+            ([], []),
+            ([3, 9, 20, 5, 678, 15, 7], [[3], [9, 20], [5, 678, 15, 7]]),
+        ].map(Case<[Int?], [[Int]]>.init)
+
+        let methods = [
+            solution.levelOrderTraversel_,
+        ]
+
+        testHelper(cases: cases, methods: methods) { treeData, method in
+            method(makeTree(treeData))
+        }
+    }
+
     func testIsSymmetric() {
         let solution = Solution()
         let cases = [
