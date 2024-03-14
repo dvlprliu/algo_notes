@@ -1,6 +1,6 @@
 //
-//  File.swift
-//  
+//  Solution.swift
+//
 //
 //  Created by zhzh liu on 2022/6/25.
 //
@@ -32,7 +32,7 @@ class Solution {
     enum ReverseList {
         static func byIterate(_ head: ListNode?) -> ListNode? {
             if head == nil || head?.next == nil { return head }
-            var pre: ListNode? = nil
+            var pre: ListNode?
             var next = head?.next
             var head = head
             while let newHead = head {
@@ -50,7 +50,7 @@ class Solution {
             if head == nil || head?.next == nil {
                 return head
             }
-            var pre: ListNode? = nil
+            var pre: ListNode?
             var cur = head
             while cur != nil {
                 let next = cur?.next
@@ -70,7 +70,7 @@ class Solution {
             }
             return recur(head, pre: nil)
         }
-        
+
         static func recursiveSimple(_ head: ListNode?) -> ListNode? {
             if head == nil || head?.next == nil {
                 return head
@@ -87,12 +87,12 @@ class Solution {
         static func byIterate(_ l1: ListNode?, _ l2: ListNode?) -> ListNode? {
             if l1 == nil { return l2 }
             if l2 == nil { return l1 }
-            var newList: ListNode? = nil
+            var newList: ListNode?
             var head = newList
             var l1N = l1
             var l2N = l2
             while let l = l1N, let r = l2N {
-                var lower: ListNode? = nil
+                var lower: ListNode?
                 if l.val <= r.val {
                     lower = l
                     l1N = l1N?.next
